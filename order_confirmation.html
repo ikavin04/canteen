@@ -78,55 +78,61 @@
                 return;
             }
             
-            document.getElementById('orderDetails').innerHTML = `
-                <div class="order-info">
-                    <div class="info-row">
-                        <span class="label">Order ID:</span>
-                        <span class="value">${order.order_id}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Transaction ID:</span>
-                        <span class="value">${order.transaction_id}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Total Amount:</span>
-                        <span class="value">₹${order.total_amount.toFixed(2)}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Payment Method:</span>
-                        <span class="value">${order.payment_method}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Status:</span>
-                        <span class="value status-${order.status.toLowerCase()}">${order.status}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Order Time:</span>
-                        <span class="value">${new Date(order.timestamp).toLocaleString()}</span>
-                    </div>
-                </div>
-                
-                <div class="order-items">
-                    <h3>Items Ordered:</h3>
-                    ${order.items.map(item => `
-                        <div class="confirmation-item">
-                            <span class="item-name">${item.name}</span>
-                            <span class="item-quantity">× ${item.quantity}</span>
-                            <span class="item-price">₹${(item.price * item.quantity).toFixed(2)}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <div class="order-status-info">
-                    <p><strong>What's Next?</strong></p>
-                    <ul>
-                        <li>Your order is being prepared</li>
-                        <li>You will be notified when it's ready</li>
-                        <li>Please show this order ID when collecting your food</li>
-                        <li>You can track your order status in "My Orders"</li>
-                    </ul>
-                </div>
-            `;
+            // Build order details HTML with proper structure
+            let html = '<div class="order-summary-section">';
+            html += '<h3 class="section-title">Order Summary</h3>';
+            html += '<div class="order-info-box">';
+            
+            html += '<div class="info-item">';
+            html += '<div class="info-label">Order ID</div>';
+            html += `<div class="info-value">${order.order_id}</div>`;
+            html += '</div>';
+            
+            html += '<div class="info-item">';
+            html += '<div class="info-label">Transaction ID</div>';
+            html += `<div class="info-value">${order.transaction_id}</div>`;
+            html += '</div>';
+            
+            html += '<div class="info-item">';
+            html += '<div class="info-label">Total Amount</div>';
+            html += `<div class="info-value info-amount">₹${order.total_amount.toFixed(2)}</div>`;
+            html += '</div>';
+            
+            html += '<div class="info-item">';
+            html += '<div class="info-label">Payment Method</div>';
+            html += `<div class="info-value">${order.payment_method}</div>`;
+            html += '</div>';
+            
+            html += '<div class="info-item">';
+            html += '<div class="info-label">Status</div>';
+            html += `<div class="info-value"><span class="status-badge">${order.status}</span></div>`;
+            html += '</div>';
+            
+            html += '<div class="info-item">';
+            html += '<div class="info-label">Order Time</div>';
+            html += `<div class="info-value">${new Date(order.timestamp).toLocaleString()}</div>`;
+            html += '</div>';
+            
+            html += '</div></div>'; // Close order-info-box and order-summary-section
+            
+            // Items section
+            html += '<div class="order-items-section">';
+            html += '<h3 class="section-title">Items Ordered</h3>';
+            html += '<div class="items-list">';
+            
+            order.items.forEach(item => {
+                html += '<div class="item-card">';
+                html += '<div class="item-left">';
+                html += `<div class="item-name">${item.name}</div>`;
+                html += `<div class="item-qty">Quantity: ${item.quantity}</div>`;
+                html += '</div>';
+                html += `<div class="item-price">₹${(item.price * item.quantity).toFixed(2)}</div>`;
+                html += '</div>';
+            });
+            
+            html += '</div></div>'; // Close items-list and order-items-section
+            
+            document.getElementById('orderDetails').innerHTML = html;
         }
         
         function viewOrders() {
