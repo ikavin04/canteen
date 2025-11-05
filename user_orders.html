@@ -43,11 +43,11 @@
         </div>
 
         <div class="orders-container" id="ordersContainer">
-            <!-- Orders will be loaded here -->
+            
         </div>
     </main>
 
-    <!-- Order Details Modal -->
+    
     <div id="orderModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -55,7 +55,7 @@
                 <span class="close" onclick="closeOrderModal()">&times;</span>
             </div>
             <div class="modal-body" id="orderModalContent">
-                <!-- Order details will be loaded here -->
+                
             </div>
         </div>
     </div>
@@ -142,7 +142,7 @@
                         }
                         ${order.status === 'Ready' ? 
                             `<div class="order-notification">
-                                <small class="ready-notification">🟢 Ready for pickup!</small>
+                                <small class="ready-notification">Ready for pickup!</small>
                             </div>` : ''
                         }
                     </div>
