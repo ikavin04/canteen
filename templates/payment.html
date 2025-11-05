@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Payment - Smart Canteen{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-box" style="max-width:600px;margin:2rem auto;">
+        <h1>KGiSL Institute of Technology</h1>
+        <h2>Mock UPI Payment</h2>
+        <p>This is a simulated UPI payment page for testing. No real transactions will occur.</p>
+        
+        <form id="paymentForm">
+            <div class="form-group">
+                <label for="upi_id">UPI ID</label>
+                <input id="upi_id" name="upi_id" placeholder="example@bank" required>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <input id="amount" name="amount" value="0" readonly>
+            </div>
+            <button class="btn btn-primary" type="submit">Pay (Mock)</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('paymentForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    fetch('/payment', {method:'POST'}).then(r => r.json()).then(data => {
+        if (data.success) {
+            alert('Payment successful. Transaction ID: ' + data.transaction_id);
+            window.location.href = '/user/orders';
+        } else {
+            alert('Payment failed');
+        }
+    }).catch(err => { alert('Network error'); });
+});
+</script>
+{% endblock %}

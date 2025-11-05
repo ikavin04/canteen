@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Smart Canteen{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <div class="auth-header">
+            <h1>KGiSL Institute of Technology</h1>
+            <h2>Smart Canteen</h2>
+            <p>Digital Food Ordering System</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+            <h3>Login to Your Account</h3>
+            
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+            
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+            </div>
+            
+            <div class="demo-credentials">
+                <p><strong>Demo Credentials:</strong></p>
+                <p>Admin: username=admin, password=admin123</p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

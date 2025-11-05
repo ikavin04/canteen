@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Canteen{% endblock %}
+
+{% block navbar %}
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <h2>KGiSL Smart Canteen</h2>
+        </div>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-menu" id="navMenu">
+            <a href="{{ url_for('user_dashboard') }}" class="nav-link active">Menu</a>
+            <a href="{{ url_for('view_cart') }}" class="nav-link">
+                Cart <span class="cart-badge" id="cart-count">0</span>
+            </a>
+            <a href="{{ url_for('user_orders') }}" class="nav-link">My Orders</a>
+            <div class="nav-user">
+                <span class="username-display">Welcome, {{ user.username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>Today's Menu</h1>
+        <p>Select items and add them to your cart</p>
+    </div>
+    
+    <!-- Category Filter -->
+    <div class="category-filter">
+        <a href="{{ url_for('user_dashboard') }}" 
+           class="filter-btn {% if not selected_category %}active{% endif %}">All Items</a>
+        {% for category in categories %}
+        <a href="{{ url_for('user_dashboard', category=category) }}" 
+           class="filter-btn {% if selected_category == category %}active{% endif %}">{{ category }}</a>
+        {% endfor %}
+    </div>
+    
+    <!-- Menu Items Grid -->
+    <div class="menu-grid">
+        {% if menu_items %}
+            {% for item in menu_items %}
+            <div class="menu-card">
+                <div class="menu-card-header">
+                    <h3>{{ item.item_name }}</h3>
+                    {% if item.category %}
+                    <span class="category-badge">{{ item.category }}</span>
+                    {% endif %}
+                </div>
+                <div class="menu-card-body">
+                    {% if item.description %}
+                    <p class="menu-description">{{ item.description }}</p>
+                    {% endif %}
+                    <div class="menu-price">₹{{ "%.2f"|format(item.price) }}</div>
+                </div>
+                <div class="menu-card-footer">
+                    <button class="btn btn-primary btn-block add-to-cart" 
+                            data-id="{{ item.id }}"
+                            data-name="{{ item.item_name }}"
+                            data-price="{{ item.price }}">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <h3>No Items Available</h3>
+                <p>{% if selected_category %}No items available in the "{{ selected_category }}" category at the moment.{% else %}No menu items are currently available.{% endif %}</p>
+                <p>Please check back later or contact the canteen staff.</p>
+                {% if selected_category %}
+                <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary">View All Categories</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Cart Panel -->
+<div class="cart-panel" id="cartPanel">
+    <div class="cart-header">
+        <h3>Your Cart</h3>
+        <button class="close-cart" onclick="toggleCart()">&times;</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+        <p class="empty-cart">Your cart is empty</p>
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total">
+            <span>Total:</span>
+            <span id="cartTotal">₹0.00</span>
+        </div>
+        <button class="btn btn-success btn-block" onclick="proceedToCheckout()">Proceed to Payment</button>
+    </div>
+</div>
+
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script>
+        // Mobile Navigation Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.getElementById('navToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            if (navToggle && navMenu) {
+                navToggle.addEventListener('click', function() {
+                    navToggle.classList.toggle('active');
+                    navMenu.classList.toggle('active');
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+                        navToggle.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    }
+                });
+                
+                // Close menu when window is resized to desktop
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768) {
+                        navToggle.classList.remove('active');
+                        navMenu.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Set user ID for notifications
+            const userIdElement = document.createElement('div');
+            userIdElement.setAttribute('data-user-id', '{{ user.id }}');
+            userIdElement.style.display = 'none';
+            document.body.appendChild(userIdElement);
+        });
+    </script>
+{% endblock %}

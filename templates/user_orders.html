@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - Smart Canteen{% endblock %}
+
+{% block navbar %}
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <h2>KGiSL Smart Canteen</h2>
+        </div>
+        <div class="nav-menu">
+            <a href="{{ url_for('user_dashboard') }}" class="nav-link">Menu</a>
+            <a href="{{ url_for('view_cart') }}" class="nav-link">
+                Cart <span class="cart-badge" id="cart-count">0</span>
+            </a>
+            <a href="{{ url_for('user_orders') }}" class="nav-link active">My Orders</a>
+            <div class="nav-user">
+                <span>Welcome, {{ user.username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>My Orders</h1>
+        <p>Track your order history and status</p>
+    </div>
+    
+    {% if orders %}
+    <div class="orders-list">
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="order-header">
+                <div>
+                    <h3>Order {{ order.order_id }}</h3>
+                    <p class="order-date">{{ order.timestamp.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    {% if order.ready_at and order.status == 'Ready' %}
+                    <p class="status-timestamp">Ready at: {{ order.ready_at.strftime('%I:%M %p') }}</p>
+                    {% elif order.completed_at and order.status == 'Completed' %}
+                    <p class="status-timestamp">Completed at: {{ order.completed_at.strftime('%I:%M %p') }}</p>
+                    {% endif %}
+                </div>
+                <div class="order-status-container">
+                    <div class="order-status status-{{ order.status.lower() }}">
+                        {% if order.status == 'Uncompleted' %}
+                        Preparing
+                        {% elif order.status == 'Ready' %}
+                        Ready for Pickup
+                        {% elif order.status == 'Completed' %}
+                        Completed
+                        {% else %}
+                        {{ order.status }}
+                        {% endif %}
+                    </div>
+                    {% if order.status == 'Ready' %}
+                    <div class="ready-notification">
+                        <small>Your order is ready! Please collect it.</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="order-body">
+                <h4>Items:</h4>
+                {% for item in order.order_items %}
+                <div class="order-item">
+                    <span class="item-name">{{ item.menu_item.item_name }}</span>
+                    <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                    <span class="item-price">₹{{ "%.2f"|format(item.total_price) }}</span>
+                </div>
+                {% endfor %}
+                <div class="order-total">
+                    <strong>Total: ₹{{ "%.2f"|format(order.total_amount) }}</strong>
+                </div>
+            </div>
+            <div class="order-footer">
+                <div class="order-info">
+                    <span><strong>Payment:</strong> {{ order.payment_method }}</span>
+                    <span><strong>Transaction ID:</strong> {{ order.transaction_id }}</span>
+                </div>
+                <div class="order-actions">
+                    {% if order.status in ['Ready', 'Completed'] %}
+                    <a href="{{ url_for('download_user_bill', order_id=order.id) }}" 
+                       class="btn btn-sm btn-success">Download Bill</a>
+                    {% if order.status == 'Ready' %}
+                    <span class="ready-badge">Ready for Pickup!</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="bill-note">Bill will be auto-generated when order is ready</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Orders Yet</h3>
+        <p>Start ordering from our menu!</p>
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary">View Menu</a>
+    </div>
+    {% endif %}
+</div>
+
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script>
+        // Set user ID for notifications
+        document.addEventListener('DOMContentLoaded', function() {
+            const userIdElement = document.createElement('div');
+            userIdElement.setAttribute('data-user-id', '{{ user.id }}');
+            userIdElement.style.display = 'none';
+            document.body.appendChild(userIdElement);
+        });
+
+        // Auto-refresh order status every 30 seconds
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+    </script>
+{% endblock %}

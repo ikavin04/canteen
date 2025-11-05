@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Smart Canteen Admin{% endblock %}
+
+{% block navbar %}
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <h2>KGiSL Smart Canteen - Admin</h2>
+        </div>
+        <div class="nav-menu">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Overview</a>
+            <a href="{{ url_for('admin_menu') }}" class="nav-link">Menu</a>
+            <a href="{{ url_for('admin_orders') }}" class="nav-link">Orders</a>
+            <a href="{{ url_for('admin_analytics') }}" class="nav-link active">Analytics</a>
+            <div class="nav-user">
+                <span>Admin</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    <h3>Revenue (Last 30 Days)</h3>
+    <canvas id="revenueChart" width="800" height="300"></canvas>
+
+    <h3>Most Ordered Items</h3>
+    <canvas id="mostOrderedChart" width="800" height="300"></canvas>
+
+    <h3>Orders by Status</h3>
+    <canvas id="statusChart" width="800" height="300"></canvas>
+</div>
+
+<!-- Hidden data elements to pass data to JavaScript -->
+<div id="chartData" style="display: none;">
+    <span id="revenueLabels">{{ revenue_labels | tojson | safe }}</span>
+    <span id="revenueData">{{ revenue_values | tojson | safe }}</span>
+    <span id="mostOrderedLabels">{{ most_ordered_labels | tojson | safe }}</span>
+    <span id="mostOrderedData">{{ most_ordered_values | tojson | safe }}</span>
+    <span id="statusLabels">{{ status_labels | tojson | safe }}</span>
+    <span id="statusData">{{ status_values | tojson | safe }}</span>
+</div>
+
+<script>
+// Get data from hidden elements
+function getChartData() {
+    return {
+        revenueLabels: JSON.parse(document.getElementById('revenueLabels').textContent || '[]'),
+        revenueData: JSON.parse(document.getElementById('revenueData').textContent || '[]'),
+        mostOrderedLabels: JSON.parse(document.getElementById('mostOrderedLabels').textContent || '[]'),
+        mostOrderedData: JSON.parse(document.getElementById('mostOrderedData').textContent || '[]'),
+        statusLabels: JSON.parse(document.getElementById('statusLabels').textContent || '[]'),
+        statusData: JSON.parse(document.getElementById('statusData').textContent || '[]')
+    };
+}
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = getChartData();
+
+    // Revenue Chart
+    if (document.getElementById('revenueChart')) {
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: {
+                labels: chartData.revenueLabels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: chartData.revenueData,
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(76,175,80,0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Most Ordered Chart
+    if (document.getElementById('mostOrderedChart')) {
+        new Chart(document.getElementById('mostOrderedChart'), {
+            type: 'bar',
+            data: {
+                labels: chartData.mostOrderedLabels,
+                datasets: [{
+                    label: 'Quantity',
+                    data: chartData.mostOrderedData,
+                    backgroundColor: '#2196F3'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Status Pie Chart
+    if (document.getElementById('statusChart')) {
+        new Chart(document.getElementById('statusChart'), {
+            type: 'pie',
+            data: {
+                labels: chartData.statusLabels,
+                datasets: [{
+                    data: chartData.statusData,
+                    backgroundColor: ['#FFC107','#03A9F4','#8BC34A','#9E9E9E','#FF5722']
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

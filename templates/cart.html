@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Cart - Smart Canteen{% endblock %}
+
+{% block navbar %}
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <h2>KGiSL Smart Canteen</h2>
+        </div>
+        <div class="nav-menu">
+            <a href="{{ url_for('user_dashboard') }}" class="nav-link">Menu</a>
+            <a href="{{ url_for('view_cart') }}" class="nav-link active">Cart</a>
+            <a href="{{ url_for('user_orders') }}" class="nav-link">My Orders</a>
+            <div class="nav-user">
+                <span>Welcome, {{ user.username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-box" style="max-width:900px;margin:2rem auto;">
+        <h2>Your Cart</h2>
+        <div id="cartItems"></div>
+        <div style="margin-top:1rem;display:flex;justify-content:space-between;align-items:center;">
+            <div>Total: <strong id="cartTotal">₹0.00</strong></div>
+            <div>
+                <button class="btn btn-outline" onclick="localStorage.removeItem('sc_cart');renderCartItems();updateCartCount();">Clear</button>
+                <button class="btn btn-primary" onclick="proceedToCheckout()">Proceed to Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+<script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - Smart Canteen Admin{% endblock %}
+
+{% block navbar %}
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <h2>KGiSL Smart Canteen - Admin</h2>
+        </div>
+        <div class="nav-menu">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Overview</a>
+            <a href="{{ url_for('admin_menu') }}" class="nav-link">Menu</a>
+            <a href="{{ url_for('admin_orders') }}" class="nav-link active">Orders</a>
+            <a href="{{ url_for('admin_analytics') }}" class="nav-link">Analytics</a>
+            <div class="nav-user">
+                <span>Admin</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h3>All Orders</h3>
+    
+    <!-- Search and Filter Row -->
+    <div class="filter-row">
+        <form method="GET" action="{{ url_for('admin_orders') }}" class="form-inline">
+            <input type="text" name="search" placeholder="Search by Order ID or Username" 
+                   value="{{ search_query or '' }}" style="min-width: 250px;">
+            <select name="status">
+                <option value="">All Status</option>
+                <option value="Uncompleted" {% if status_filter=='Uncompleted' %}selected{% endif %}>Uncompleted</option>
+                <option value="Ready" {% if status_filter=='Ready' %}selected{% endif %}>Ready</option>
+                <option value="Completed" {% if status_filter=='Completed' %}selected{% endif %}>Completed</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Search & Filter</button>
+            <a href="{{ url_for('admin_orders') }}" class="btn btn-outline">Clear</a>
+        </form>
+    </div>
+
+    {% if orders %}
+    <div class="orders-container">
+        {% for order in orders %}
+        <div class="order-card admin-order-card">
+            <div class="order-header">
+                <div class="order-info">
+                    <h4>Order {{ order.order_id }}</h4>
+                    <p><strong>Customer:</strong> {{ order.customer.username }}</p>
+                    <p><strong>Date:</strong> {{ order.timestamp.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    <p><strong>Total:</strong> ₹{{ "%.2f"|format(order.total_amount) }}</p>
+                </div>
+                <div class="order-status-section">
+                    <span class="order-status status-{{ order.status.lower() }}">{{ order.status }}</span>
+                    {% if order.ready_at %}
+                    <small class="status-timestamp">Ready at: {{ order.ready_at.strftime('%I:%M %p') }}</small>
+                    {% endif %}
+                    {% if order.completed_at %}
+                    <small class="status-timestamp">Completed at: {{ order.completed_at.strftime('%I:%M %p') }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="order-items">
+                <h5>Items:</h5>
+                <ul>
+                    {% for item in order.order_items %}
+                    <li>{{ item.menu_item.item_name }} × {{ item.quantity }} = ₹{{ "%.2f"|format(item.total_price) }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="order-actions">
+                <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" class="status-form">
+                    <div class="status-buttons">
+                        <button type="submit" name="status" value="Uncompleted" 
+                                class="btn btn-sm {% if order.status == 'Uncompleted' %}btn-primary{% else %}btn-outline{% endif %}">
+                            Uncompleted
+                        </button>
+                        <button type="submit" name="status" value="Ready" 
+                                class="btn btn-sm {% if order.status == 'Ready' %}btn-success{% else %}btn-outline{% endif %}">
+                            Ready (Auto-Bill)
+                        </button>
+                        <button type="submit" name="status" value="Completed" 
+                                class="btn btn-sm {% if order.status == 'Completed' %}btn-secondary{% else %}btn-outline{% endif %}">
+                            Completed
+                        </button>
+                    </div>
+                </form>
+                <a href="{{ url_for('download_order_bill', order_id=order.id) }}" 
+                   class="btn btn-sm btn-info">Download Bill</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No orders found matching your criteria.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
