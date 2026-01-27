@@ -200,22 +200,45 @@
             }
             
             showMessage('Processing payment...', 'info');
-            
-            // Simulate payment processing
-            setTimeout(() => {
-                const result = placeOrder(cart, paymentMethod);
-                
-                if (result.success) {
+
+            // Try server-side checkout if backend available, otherwise fallback to local simulation
+            const payload = {
+                cart: cart,
+                payment_method: paymentMethod
+            };
+
+            fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => {
+                if (!res.ok) throw new Error('No backend');
+                return res.json();
+            }).then(data => {
+                if (data && data.success) {
                     showMessage('Payment successful! Order placed.', 'success');
                     clearCart();
-                    
                     setTimeout(() => {
-                        window.location.href = `order_confirmation.html?orderId=${result.orderId}`;
-                    }, 2000);
+                        window.location.href = `order_confirmation.html?orderId=${data.orderId || data.order_id || ''}`;
+                    }, 1200);
                 } else {
-                    showMessage(result.message, 'error');
+                    showMessage(data.message || 'Payment failed', 'error');
                 }
-            }, 2000);
+            }).catch(() => {
+                // Fallback to local simulation when backend not present
+                setTimeout(() => {
+                    const result = placeOrder(cart, paymentMethod);
+                    if (result.success) {
+                        showMessage('Payment successful! Order placed.', 'success');
+                        clearCart();
+                        setTimeout(() => {
+                            window.location.href = `order_confirmation.html?orderId=${result.orderId}`;
+                        }, 1200);
+                    } else {
+                        showMessage(result.message, 'error');
+                    }
+                }, 1000);
+            });
         }
         
         function goBack() {

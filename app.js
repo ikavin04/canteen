@@ -383,9 +383,52 @@ function initializeTouchControls() {
         }
     });
 }
+// Validation helpers
+function validateEmail(email) {
+    if (!email || typeof email !== 'string') return false;
+    email = email.trim();
+    // Basic structure check
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(email)) return false;
+    // disallow local part that is only digits (e.g., "123"@domain.com)
+    const localPart = email.split('@')[0] || '';
+    if (/^\d+$/.test(localPart)) return false;
+    return true;
+}
+
+function validatePassword(password) {
+    if (!password || typeof password !== 'string') return false;
+    // At least 8 chars, one uppercase, one special character
+    const re = /^(?=.{8,}$)(?=.*[A-Z])(?=.*[^A-Za-z0-9]).*$/;
+    return re.test(password);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeMobileNav();
     initializeTouchControls();
 });
 initializeData();
 initializeDemoAccounts();
+
+// Menu/cart helpers improvements
+// Ensure menu quantity controls reflect cart and keep a synchronized map
+let currentQuantities = {};
+
+function syncCurrentQuantitiesFromCart() {
+    // default every menu item to 1, then override with cart quantities
+    currentQuantities = {};
+    const menu = getMenu();
+    menu.forEach(item => {
+        currentQuantities[item.id] = 1;
+    });
+    const cart = getCart();
+    cart.forEach(item => {
+        currentQuantities[item.id] = item.quantity;
+    });
+}
+
+// Expose for pages that rely on it
+window.validateEmail = validateEmail;
+window.validatePassword = validatePassword;
+window.syncCurrentQuantitiesFromCart = syncCurrentQuantitiesFromCart;
+

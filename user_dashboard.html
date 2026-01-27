@@ -11,7 +11,7 @@
         <div class="nav-container">
             <h1 class="nav-logo">Smart Canteen</h1>
             <div class="nav-menu">
-                <button class="hamburger" onclick="toggleMobileMenu()">
+                <button class="hamburger" id="hamburgerBtn" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle menu">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -72,6 +72,26 @@
         <div id="cartOverlay" class="cart-overlay" onclick="toggleCart()"></div>
     </main>
 
+    <!-- Bottom Navigation for Mobile/Tablet -->
+    <nav class="bottom-nav">
+        <a href="user_dashboard.html" class="bottom-nav-item active">
+            <div class="bottom-nav-icon">●</div>
+            <span class="bottom-nav-label">Menu</span>
+        </a>
+        <div class="bottom-nav-item" onclick="toggleCart()">
+            <div class="bottom-nav-icon">▢</div>
+            <span class="bottom-nav-label">Cart (<span id="bottomCartCount">0</span>)</span>
+        </div>
+        <a href="user_orders.html" class="bottom-nav-item">
+            <div class="bottom-nav-icon">≡</div>
+            <span class="bottom-nav-label">Orders</span>
+        </a>
+        <div class="bottom-nav-item" onclick="logout()">
+            <div class="bottom-nav-icon">◦</div>
+            <span class="bottom-nav-label">Profile</span>
+        </div>
+    </nav>
+
     <script src="app.js"></script>
     <script>
         // Check authentication
@@ -85,10 +105,28 @@
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('userName').textContent = currentUser.username;
+            // sync quantities from cart so menu quantity controls reflect the cart
+            if (typeof syncCurrentQuantitiesFromCart === 'function') syncCurrentQuantitiesFromCart();
             loadMenu();
             loadCategories();
             updateCartUI();
             startNotificationPolling();
+
+            // Wire up hamburger toggle (no inline onclick to avoid double toggles)
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleMobileMenu();
+                });
+            }
+
+            // Close on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeMobileMenu();
+                }
+            });
         });
         
         function loadMenu() {
@@ -111,7 +149,7 @@
                     <div class="menu-item-actions">
                         <div class="quantity-controls">
                             <button onclick="changeQuantity(${item.id}, -1)">-</button>
-                            <span id="qty-${item.id}">0</span>
+                            <span id="qty-${item.id}">${(typeof currentQuantities !== 'undefined' && currentQuantities[item.id]) || 1}</span>
                             <button onclick="changeQuantity(${item.id}, 1)">+</button>
                         </div>
                         <button onclick="addToCart(${item.id})" class="btn btn-primary">Add to Cart</button>
@@ -119,14 +157,6 @@
                 </div>
             `).join('');
             
-            // Update quantity displays based on cart
-            const cart = getCart();
-            cart.forEach(cartItem => {
-                const qtyElement = document.getElementById(`qty-${cartItem.id}`);
-                if (qtyElement) {
-                    qtyElement.textContent = cartItem.quantity;
-                }
-            });
         }
         
         function loadCategories() {
@@ -146,26 +176,30 @@
             loadMenu();
         }
         
-        let currentQuantities = {};
-        
+        // Use shared currentQuantities synced from cart
+        // syncCurrentQuantitiesFromCart() (from app.js) will populate `currentQuantities`
         function changeQuantity(itemId, change) {
+            if (typeof currentQuantities === 'undefined') currentQuantities = {};
             if (!currentQuantities[itemId]) {
-                currentQuantities[itemId] = 0;
+                currentQuantities[itemId] = 1;
             }
-            
-            currentQuantities[itemId] = Math.max(0, currentQuantities[itemId] + change);
-            document.getElementById(`qty-${itemId}`).textContent = currentQuantities[itemId];
+
+            currentQuantities[itemId] = Math.max(1, (currentQuantities[itemId] || 1) + change);
+            const qtyEl = document.getElementById(`qty-${itemId}`);
+            if (qtyEl) qtyEl.textContent = currentQuantities[itemId];
         }
         
         function addToCart(itemId) {
-            const quantity = currentQuantities[itemId] || 1;
+            const quantity = (typeof currentQuantities !== 'undefined' && currentQuantities[itemId]) || 1;
             const result = addItemToCart(itemId, quantity);
             
             if (result.success) {
                 showNotification(`Added ${quantity} item(s) to cart`, 'success');
                 updateCartUI();
-                currentQuantities[itemId] = 0;
-                document.getElementById(`qty-${itemId}`).textContent = '0';
+                // reset displayed quantity to 1 for next quick add
+                currentQuantities[itemId] = 1;
+                const qtyEl = document.getElementById(`qty-${itemId}`);
+                if (qtyEl) qtyEl.textContent = '1';
             } else {
                 showNotification(result.message, 'error');
             }
@@ -181,6 +215,12 @@
             // Update cart count
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
             cartCount.textContent = totalItems;
+            
+            // Update bottom navigation cart count
+            const bottomCartCount = document.getElementById('bottomCartCount');
+            if (bottomCartCount) {
+                bottomCartCount.textContent = totalItems;
+            }
             
             // Update cart items
             if (cart.length === 0) {
@@ -246,8 +286,35 @@
         
         function toggleMobileMenu() {
             const navLinks = document.getElementById('navLinks');
+            const hamburger = document.getElementById('hamburgerBtn');
+            const willOpen = !navLinks.classList.contains('active');
             navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+            if (hamburger) hamburger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
+
+        function closeMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const hamburger = document.getElementById('hamburgerBtn');
+            if (navLinks && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                if (hamburger) {
+                    hamburger.classList.remove('active');
+                    hamburger.setAttribute('aria-expanded', 'false');
+                }
+            }
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navLinks = document.getElementById('navLinks');
+            const hamburger = document.getElementById('hamburgerBtn');
+            const isClickInsideMenu = navLinks.contains(event.target);
+            const isClickOnHamburger = hamburger.contains(event.target);
+            if (!isClickInsideMenu && !isClickOnHamburger) {
+                closeMobileMenu();
+            }
+        });
         
         function showNotification(message, type) {
             const notification = document.getElementById('notification');

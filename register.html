@@ -37,7 +37,7 @@
                         <label for="password">Password</label>
                         <input type="password" id="password" name="password">
                         <span class="error-text" id="passwordError"></span>
-                        <small>At least 6 characters</small>
+                        <small>Minimum 8 characters, 1 uppercase, 1 special symbol</small>
                     </div>
                     
                     <div class="form-group">
@@ -84,21 +84,21 @@
                 hasError = true;
             }
             
-            // Validate email
+            // Validate email: structure + not purely numeric local-part
             if (!email) {
                 document.getElementById('emailError').textContent = 'Please enter your email';
                 hasError = true;
-            } else if (!email.includes('@') || !email.includes('.')) {
-                document.getElementById('emailError').textContent = 'Please enter a valid email address';
+            } else if (!validateEmail(email)) {
+                document.getElementById('emailError').textContent = 'Please enter a valid email (local-part cannot be only numbers)';
                 hasError = true;
             }
             
-            // Validate password
+            // Validate password (min 8, 1 uppercase, 1 special)
             if (!password) {
                 document.getElementById('passwordError').textContent = 'Please enter a password';
                 hasError = true;
-            } else if (password.length < 6) {
-                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters long';
+            } else if (!validatePassword(password)) {
+                document.getElementById('passwordError').textContent = 'Password must be 8+ chars, include 1 uppercase and 1 special character';
                 hasError = true;
             }
             

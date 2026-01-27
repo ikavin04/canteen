@@ -164,7 +164,7 @@
                             <label for="orderStatusFilter">Filter by Status:</label>
                             <select id="orderStatusFilter" onchange="filterOrders()" class="admin-select">
                                 <option value="">All Orders</option>
-                                <option value="Uncompleted">Pending</option>
+                                <option value="Uncompleted">Preparing</option>
                                 <option value="Ready">Ready for Pickup</option>
                                 <option value="Completed">Completed</option>
                             </select>
@@ -287,18 +287,25 @@
             const recentOrders = orders.slice(0, 5).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             const recentOrdersList = document.getElementById('recentOrdersList');
             
-            recentOrdersList.innerHTML = recentOrders.map(order => `
-                <div class="recent-order-item">
-                    <div class="order-info">
-                        <strong>${order.order_id}</strong>
-                        <span class="order-customer">${getUserById(order.user_id)?.username || 'Unknown'}</span>
+            recentOrdersList.innerHTML = recentOrders.map(order => {
+                const statusEmoji = {
+                    'Uncompleted': '⏳',
+                    'Ready': '✅',
+                    'Completed': '✔️'
+                };
+                return `
+                    <div class="recent-order-item">
+                        <div class="order-info">
+                            <strong>${order.order_id}</strong>
+                            <span class="order-customer">👤 ${getUserById(order.user_id)?.username || 'Unknown'}</span>
+                        </div>
+                        <div class="order-details">
+                            <span class="order-amount">₹${order.total_amount.toFixed(2)}</span>
+                            <span class="order-status status-${order.status.toLowerCase()}">${statusEmoji[order.status]} ${order.status}</span>
+                        </div>
                     </div>
-                    <div class="order-details">
-                        <span class="order-amount">₹${order.total_amount.toFixed(2)}</span>
-                        <span class="order-status status-${order.status.toLowerCase()}">${order.status}</span>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         function loadMenuItems() {
@@ -356,8 +363,8 @@
                         <td>${order.items.length} items</td>
                         <td>₹${order.total_amount.toFixed(2)}</td>
                         <td>
-                            <select onchange="updateOrderStatus('${order.order_id}', this.value)" class="status-select">
-                                <option value="Uncompleted" ${order.status === 'Uncompleted' ? 'selected' : ''}>Uncompleted</option>
+                            <select onchange="updateOrderStatus('${order.order_id}', this.value)" class="status-select" value="${order.status}" style="background: ${getStatusColor(order.status).bg}; color: ${getStatusColor(order.status).text}; border-color: ${getStatusColor(order.status).border};">
+                                <option value="Uncompleted" ${order.status === 'Uncompleted' ? 'selected' : ''}>Preparing</option>
                                 <option value="Ready" ${order.status === 'Ready' ? 'selected' : ''}>Ready</option>
                                 <option value="Completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
                             </select>
@@ -369,6 +376,15 @@
                     </tr>
                 `;
             }).join('');
+        }
+        
+        function getStatusColor(status) {
+            const colors = {
+                'Uncompleted': { bg: '#fff3cd', text: '#856404', border: '#ffc107' },
+                'Ready': { bg: '#d1ecf1', text: '#0c5460', border: '#17a2b8' },
+                'Completed': { bg: '#d4edda', text: '#155724', border: '#28a745' }
+            };
+            return colors[status] || colors['Uncompleted'];
         }
         
         function filterOrders() {

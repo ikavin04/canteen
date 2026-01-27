@@ -11,7 +11,7 @@
         <div class="nav-container">
             <h1 class="nav-logo">Smart Canteen</h1>
             <div class="nav-menu">
-                <button class="hamburger" onclick="toggleMobileMenu()">
+                <button class="hamburger" id="hamburgerBtn" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle menu">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -49,6 +49,26 @@
             
         </div>
     </main>
+
+    <!-- Bottom Navigation for Mobile/Tablet -->
+    <nav class="bottom-nav">
+        <a href="user_dashboard.html" class="bottom-nav-item">
+            <div class="bottom-nav-icon">●</div>
+            <span class="bottom-nav-label">Menu</span>
+        </a>
+        <div class="bottom-nav-item" onclick="window.location.href='user_dashboard.html'; setTimeout(() => toggleCart && toggleCart(), 100)">
+            <div class="bottom-nav-icon">▢</div>
+            <span class="bottom-nav-label">Cart</span>
+        </div>
+        <a href="user_orders.html" class="bottom-nav-item active">
+            <div class="bottom-nav-icon">≡</div>
+            <span class="bottom-nav-label">Orders</span>
+        </a>
+        <div class="bottom-nav-item" onclick="logout()">
+            <div class="bottom-nav-icon">◦</div>
+            <span class="bottom-nav-label">Profile</span>
+        </div>
+    </nav>
 
     
     <div id="orderModal" class="modal">
@@ -365,10 +385,51 @@
             }, 30000);
         }
         
+        // Wire up hamburger after DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleMobileMenu();
+                });
+            }
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeMobileMenu();
+            });
+        });
+
         function toggleMobileMenu() {
             const navLinks = document.getElementById('navLinks');
+            const hamburger = document.getElementById('hamburgerBtn');
+            const willOpen = !navLinks.classList.contains('active');
             navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+            if (hamburger) hamburger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
+
+        function closeMobileMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const hamburger = document.getElementById('hamburgerBtn');
+            if (navLinks && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                if (hamburger) {
+                    hamburger.classList.remove('active');
+                    hamburger.setAttribute('aria-expanded', 'false');
+                }
+            }
+        }
+        
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navLinks = document.getElementById('navLinks');
+            const hamburger = document.getElementById('hamburgerBtn');
+            const isClickInsideMenu = navLinks.contains(event.target);
+            const isClickOnHamburger = hamburger.contains(event.target);
+            if (!isClickInsideMenu && !isClickOnHamburger) {
+                closeMobileMenu();
+            }
+        });
         
         function showNotification(message, type) {
             const notification = document.getElementById('notification');

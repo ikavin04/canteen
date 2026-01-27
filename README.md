@@ -1,29 +1,21 @@
-KGiSL Smart Canteen — Frontend-only version
+Smart Canteen — Local Frontend + Demo Backend
 
-This is a beginner-friendly, static frontend version of the Smart Canteen app. It simulates a backend using the browser's localStorage. No server is required — open `index.html` in a browser to try it.
+What's included
+- Frontend: static HTML/CSS/JS files (index.html, register.html, login.html, user_dashboard.html, payment.html, etc.)
+- Demo backend: `backend/app.py` (Flask) with `/api/checkout` endpoint
 
-Files:
-- index.html — public menu and cart
-- admin.html — simple admin panel to add menu items, toggle availability, and update orders
-- styles.css — simple responsive styles
-- app.js — main JavaScript, uses localStorage to persist menu, cart and orders
+Changes made
+- Form validation: stricter email validation (disallows numeric-only local-part) and password rules (min 8 chars, 1 uppercase, 1 special) implemented and used in registration.
+- Menu/cart: quantity controls synced with cart; improved add/update/remove logic and UI sync.
+- Payment: client attempts POST to `/api/checkout` (server stub) with fallback to local simulation.
+- Backend: minimal Flask app + Postgres attempt; default DB: `canteen`, password `Kavin04`.
+- Minor UI enhancements: notification styles and better form hints.
 
-How to run:
-1. Open `frontend_static/index.html` in any modern browser (Chrome, Edge, Firefox).
-2. Browse the menu, add items to the cart, and click "Place Order".
-3. Open `frontend_static/admin.html` to see orders and mark them "Ready" or "Completed" or to add/toggle menu items.
+Font
+- This project references a custom font named Aleoverasans. To apply the font locally, place an `Aleoverasans.woff2` file in a `fonts` folder at project root (`/fonts/Aleoverasans.woff2`). If you don't have the font file, the site will fall back to system fonts.
 
-Key concepts (easy to explain):
-- Data persistence: localStorage stores JSON strings (menu, cart, orders).
-- Rendering: JavaScript reads stored data and builds HTML elements dynamically.
-- Event handlers: Add to cart, place order, toggle availability are plain DOM events.
-- No backend: Everything runs locally in the browser — ideal to learn frontend basics.
+Run frontend
+- Open the HTML files in a browser (e.g., open `index.html`). For full checkout integration run the backend.
 
-Notes:
-- This simplified app replaces server-side logic with localStorage for learning/demonstration.
-- For production you would replace storage with HTTP calls to a backend (Flask / Node / etc.).
-
-If you want, I can also:
-- Add an `orders.html` user page to view placed orders (already supported by app.js if you add the element).
-- Add printable bill generation using `window.print()` or a lightweight library.
-- Convert this static frontend to integrate with your Flask backend later.
+Run backend
+- See [backend/README.md](backend/README.md) for steps.
