@@ -166,6 +166,18 @@
         </div>
     </nav>
 
+    <!-- Cart Summary Bar -->
+    <div class="cart-summary-bar" id="cartSummaryBar" style="display: none;">
+        <div class="cart-summary-content">
+            <span class="cart-summary-text">
+                <span id="cartSummaryCount">0</span> food items added to cart
+            </span>
+            <button class="view-cart-btn" onclick="toggleCart()">
+                View Cart
+            </button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
     <script>
         // Initialize currentQuantities object
@@ -186,6 +198,7 @@
             if (typeof syncCurrentQuantitiesFromCart === 'function') syncCurrentQuantitiesFromCart();
             loadMenu();
             loadCategories();
+            loadMenuItemQuantities();
             updateCartUI();
             startNotificationPolling();
 
@@ -216,16 +229,38 @@
                 filteredMenu = filteredMenu.filter(item => item.category === categoryFilter);
             }
             
-            menuGrid.innerHTML = filteredMenu.map(item => `
-                <div class="menu-item" onclick="showAddToCartModal(${item.id})">
-                    <img src="${item.image_url || 'https://via.placeholder.com/100'}" alt="${item.item_name}" class="menu-item-image">
+            menuGrid.innerHTML = filteredMenu.map(item => {
+                // Use category image as fallback
+                const categoryImages = {
+                    'Main Course': 'Main Course.png',
+                    'Beverages': 'Beverages.png',
+                    'Snacks': 'Snacks.png',
+                    'Breakfast': 'Breakfast.png',
+                    'Desserts': 'Deseserts.png'
+                };
+                const fallbackImage = categoryImages[item.category] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14"%3ENo Image%3C/text%3E%3C/svg%3E';
+                
+                return `
+                <div class="menu-item" data-item-id="${item.id}">
+                    <img src="${item.image_url || fallbackImage}" alt="${item.item_name}" class="menu-item-image">
                     <div class="menu-item-content">
                         <h3>${item.item_name}</h3>
                         <p class="menu-item-description">${item.description || ''}</p>
                         <span class="price">₹${parseFloat(item.price).toFixed(0)}</span>
                     </div>
+                    <div class="menu-item-cart-controls">
+                        <button class="add-to-cart-btn" onclick="addItemToCartFromMenu(${item.id}, event)">
+                            Add to Cart
+                        </button>
+                        <div class="menu-quantity-controls" style="display: none;">
+                            <button onclick="decreaseQuantity(${item.id}, event)">-</button>
+                            <span class="quantity-display">1</span>
+                            <button onclick="increaseQuantity(${item.id}, event)">+</button>
+                        </div>
+                    </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             
         }
         
@@ -235,7 +270,12 @@
         }
         
         function filterByCategory(category) {
-            window.currentCategoryFilter = category;
+            // Clear filter if 'All' is selected
+            if (category === 'All') {
+                window.currentCategoryFilter = '';
+            } else {
+                window.currentCategoryFilter = category;
+            }
             loadMenu();
         }
         
@@ -335,15 +375,28 @@
                 return;
             }
             
-            searchResults.innerHTML = filteredItems.slice(0, 5).map(item => `
-                <div class="search-result-item" onclick="selectSearchItem(${item.id}); toggleSearch();">
-                    <img src="${item.image_url || 'https://via.placeholder.com/40'}" alt="${item.item_name}" class="search-item-image">
-                    <div class="search-item-content">
-                        <div class="search-item-name">${item.item_name}</div>
-                        <div class="search-item-price">₹${parseFloat(item.price).toFixed(0)}</div>
+            const categoryImages = {
+                'All Categories': 'All Categories.png',
+                'Main Course': 'Main Course.png',
+                'Beverages': 'Beverages.png',
+                'Snacks': 'Snacks.png',
+                'Breakfast': 'Breakfast.png',
+                'Desserts': 'Deseserts.png'
+            };
+            
+            searchResults.innerHTML = filteredItems.slice(0, 5).map(item => {
+                const imgSrc = item.image_url || categoryImages[item.category] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="60" height="60"%3E%3Crect fill="%23f0f0f0" width="60" height="60"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-family="Arial" font-size="12"%3ENo Image%3C/text%3E%3C/svg%3E';
+                return `
+                    <div class="search-result-item" onclick="selectSearchItem(${item.id}); toggleSearch();">
+                        <img src="${imgSrc}" alt="${item.item_name}" class="search-item-image">
+                        <div class="search-item-content">
+                            <div class="search-item-name">${item.item_name}</div>
+                            <div class="search-item-category">${item.category}</div>
+                            <div class="search-item-price">₹${parseFloat(item.price).toFixed(0)}</div>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         function selectSearchItem(itemId) {
@@ -363,6 +416,111 @@
                 document.getElementById('searchResults').innerHTML = '';
             }
         });
+        
+        // Menu item cart controls
+        const menuItemQuantities = {};
+        
+        async function addItemToCartFromMenu(itemId, event) {
+            event.stopPropagation();
+            
+            const result = await addItemToCart(itemId, 1);
+            
+            if (result && result.success) {
+                menuItemQuantities[itemId] = 1;
+                updateMenuItemDisplay(itemId);
+                updateCartSummaryBar();
+                updateCartUI();
+                showNotification('Added to cart', 'success');
+            } else {
+                showNotification(result?.message || 'Failed to add item', 'error');
+            }
+        }
+        
+        async function increaseQuantity(itemId, event) {
+            event.stopPropagation();
+            
+            const currentQty = menuItemQuantities[itemId] || 0;
+            const result = await addItemToCart(itemId, 1);
+            
+            if (result && result.success) {
+                menuItemQuantities[itemId] = currentQty + 1;
+                updateMenuItemDisplay(itemId);
+                updateCartSummaryBar();
+                updateCartUI();
+            }
+        }
+        
+        async function decreaseQuantity(itemId, event) {
+            event.stopPropagation();
+            
+            const currentQty = menuItemQuantities[itemId] || 0;
+            if (currentQty <= 1) {
+                // Remove item completely
+                removeItemFromCart(itemId);
+                delete menuItemQuantities[itemId];
+                updateMenuItemDisplay(itemId);
+                updateCartSummaryBar();
+                updateCartUI();
+            } else {
+                const result = await addItemToCart(itemId, -1);
+                if (result && result.success) {
+                    menuItemQuantities[itemId] = currentQty - 1;
+                    updateMenuItemDisplay(itemId);
+                    updateCartSummaryBar();
+                    updateCartUI();
+                }
+            }
+        }
+        
+        function updateMenuItemDisplay(itemId) {
+            const menuItem = document.querySelector(`.menu-item[data-item-id="${itemId}"]`);
+            if (!menuItem) return;
+            
+            const addBtn = menuItem.querySelector('.add-to-cart-btn');
+            const quantityControls = menuItem.querySelector('.menu-quantity-controls');
+            const quantityDisplay = menuItem.querySelector('.quantity-display');
+            
+            const quantity = menuItemQuantities[itemId] || 0;
+            
+            if (quantity > 0) {
+                addBtn.style.display = 'none';
+                quantityControls.style.display = 'flex';
+                quantityDisplay.textContent = quantity;
+            } else {
+                addBtn.style.display = 'block';
+                quantityControls.style.display = 'none';
+            }
+        }
+        
+        async function updateCartSummaryBar() {
+            const cart = await getCart();
+            const cartSummaryBar = document.getElementById('cartSummaryBar');
+            const cartSummaryCount = document.getElementById('cartSummaryCount');
+            
+            let totalItems = 0;
+            if (cart && cart.items) {
+                totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+            }
+            
+            if (totalItems > 0) {
+                cartSummaryBar.style.display = 'block';
+                cartSummaryCount.textContent = totalItems;
+            } else {
+                cartSummaryBar.style.display = 'none';
+            }
+        }
+        
+        // Load menu item quantities from cart on page load
+        async function loadMenuItemQuantities() {
+            const cart = await getCart();
+            if (cart && cart.items) {
+                cart.items.forEach(item => {
+                    menuItemQuantities[item.item_id] = item.quantity;
+                    updateMenuItemDisplay(item.item_id);
+                });
+                updateCartSummaryBar();
+            }
+        }
         
         // Use shared currentQuantities synced from cart
         // syncCurrentQuantitiesFromCart() (from app.js) will populate `currentQuantities`
