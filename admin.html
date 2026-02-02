@@ -30,24 +30,6 @@
 
         
         <div id="dashboard" class="tab-content active">
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>Total Users</h3>
-                    <div class="stat-number" id="totalUsers">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Orders</h3>
-                    <div class="stat-number" id="totalOrders">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Revenue</h3>
-                    <div class="stat-number">₹<span id="totalRevenue">0.00</span></div>
-                </div>
-                <div class="stat-card">
-                    <h3>Pending Orders</h3>
-                    <div class="stat-number" id="pendingOrders">0</div>
-                </div>
-            </div>
             
             <div class="dashboard-recent">
                 <div class="recent-orders">
@@ -75,6 +57,19 @@
                         <span>Revenue Today:</span>
                         <span>₹<span id="revenueToday">0.00</span></span>
                     </div>
+                </div>
+                
+                <!-- Order ID Verification Section -->
+                <div class="verification-section">
+                    <h3>Verify Order for Pickup</h3>
+                    <div class="verify-container">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="verifyOrderId">Enter Order ID</label>
+                            <input type="text" id="verifyOrderId" placeholder="ORD-XXXXXX" style="text-transform: uppercase; font-size: 1.1rem; padding: 12px;">
+                        </div>
+                        <button onclick="verifyOrder()" class="btn btn-primary">Verify Order</button>
+                    </div>
+                    <div id="verificationResult" class="verification-result hidden"></div>
                 </div>
             </div>
         </div>
@@ -255,10 +250,10 @@
             }
         }
         
-        function loadDashboardStats() {
-            const users = getAllUsers();
-            const orders = getAllOrders();
-            const menu = getMenu();
+        async function loadDashboardStats() {
+            const users = await getAllUsers();
+            const orders = await getAllOrders();
+            const menu = await getMenu();
             
             // Calculate stats
             const totalUsers = users.filter(user => user.role === 'user').length;
@@ -267,24 +262,20 @@
             const pendingOrders = orders.filter(order => order.status === 'Uncompleted').length;
             
             const today = new Date().toDateString();
-            const ordersToday = orders.filter(order => new Date(order.timestamp).toDateString() === today);
+            const ordersToday = orders.filter(order => new Date(order.created_at || order.timestamp).toDateString() === today);
             const revenueToday = ordersToday.reduce((sum, order) => sum + order.total_amount, 0);
             
             const availableItems = menu.filter(item => item.availability).length;
             const unavailableItems = menu.filter(item => !item.availability).length;
             
-            // Update UI
-            document.getElementById('totalUsers').textContent = totalUsers;
-            document.getElementById('totalOrders').textContent = totalOrders;
-            document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2);
-            document.getElementById('pendingOrders').textContent = pendingOrders;
+            // Update UI - only update elements that exist
             document.getElementById('ordersToday').textContent = ordersToday.length;
-            document.getElementById('revenueToday').textContent = revenueToday.toFixed(2);
+            document.getElementById('revenueToday').textContent = parseFloat(revenueToday).toFixed(2);
             document.getElementById('availableItems').textContent = availableItems;
             document.getElementById('unavailableItems').textContent = unavailableItems;
             
             // Load recent orders
-            const recentOrders = orders.slice(0, 5).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const recentOrders = orders.slice(0, 5).sort((a, b) => new Date(b.created_at || b.timestamp) - new Date(a.created_at || a.timestamp));
             const recentOrdersList = document.getElementById('recentOrdersList');
             
             recentOrdersList.innerHTML = recentOrders.map(order => {
@@ -297,10 +288,10 @@
                     <div class="recent-order-item">
                         <div class="order-info">
                             <strong>${order.order_id}</strong>
-                            <span class="order-customer">👤 ${getUserById(order.user_id)?.username || 'Unknown'}</span>
+                            <span class="order-customer">👤 ${order.username || 'Unknown'}</span>
                         </div>
                         <div class="order-details">
-                            <span class="order-amount">₹${order.total_amount.toFixed(2)}</span>
+                            <span class="order-amount">₹${parseFloat(order.total_amount).toFixed(2)}</span>
                             <span class="order-status status-${order.status.toLowerCase()}">${statusEmoji[order.status]} ${order.status}</span>
                         </div>
                     </div>
@@ -308,8 +299,8 @@
             }).join('');
         }
         
-        function loadMenuItems() {
-            const menu = getMenu();
+        async function loadMenuItems() {
+            const menu = await getMenu();
             const menuTableBody = document.getElementById('menuTableBody');
             
             menuTableBody.innerHTML = menu.map(item => `
@@ -317,7 +308,7 @@
                     <td>${item.id}</td>
                     <td>${item.item_name}</td>
                     <td>${item.category}</td>
-                    <td>₹${item.price.toFixed(2)}</td>
+                    <td>₹${parseFloat(item.price).toFixed(2)}</td>
                     <td>
                         <span class="availability-badge ${item.availability ? 'available' : 'unavailable'}">
                             ${item.availability ? 'Available' : 'Unavailable'}
@@ -349,20 +340,19 @@
                 if (searchTerm) {
                     filteredOrders = filteredOrders.filter(order => 
                         order.order_id.toLowerCase().includes(searchTerm) ||
-                        (getUserById(order.user_id)?.username || '').toLowerCase().includes(searchTerm)
+                        (order.username || '').toLowerCase().includes(searchTerm)
                     );
                 }
                 
                 const ordersTableBody = document.getElementById('ordersTableBody');
                 
                 ordersTableBody.innerHTML = filteredOrders.map(order => {
-                    const customer = getUserById(order.user_id);
                     return `
                     <tr>
                         <td>${order.order_id}</td>
-                        <td>${customer?.username || 'Unknown'}</td>
+                        <td>${order.username || 'Unknown'}</td>
                         <td>${order.items.length} items</td>
-                        <td>₹${order.total_amount.toFixed(2)}</td>
+                        <td>₹${parseFloat(order.total_amount).toFixed(2)}</td>
                         <td>
                             <select onchange="updateOrderStatus('${order.order_id}', this.value)" class="status-select" value="${order.status}" style="background: ${getStatusColor(order.status).bg}; color: ${getStatusColor(order.status).text}; border-color: ${getStatusColor(order.status).border};">
                                 <option value="Uncompleted" ${order.status === 'Uncompleted' ? 'selected' : ''}>Preparing</option>
@@ -370,7 +360,7 @@
                                 <option value="Completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
                             </select>
                         </td>
-                        <td>${new Date(order.timestamp).toLocaleString()}</td>
+                        <td>${new Date(order.created_at || order.timestamp).toLocaleString()}</td>
                         <td>
                             <button onclick="viewOrderDetails('${order.order_id}')" class="btn btn-small">View</button>
                         </td>
@@ -409,8 +399,8 @@
             document.getElementById('itemFormContainer').classList.add('hidden');
         }
         
-        function editMenuItem(itemId) {
-            const menu = getMenu();
+        async function editMenuItem(itemId) {
+            const menu = await getMenu();
             const item = menu.find(i => i.id === itemId);
             
             if (!item) return;
@@ -424,9 +414,9 @@
             document.getElementById('itemFormContainer').classList.remove('hidden');
         }
         
-        function deleteMenuItem(itemId) {
+        async function deleteMenuItem(itemId) {
             if (confirm('Are you sure you want to delete this menu item?')) {
-                const result = deleteMenuItemById(itemId);
+                const result = await deleteMenuItemById(itemId);
                 if (result.success) {
                     showNotification('Menu item deleted successfully', 'success');
                     loadMenuItems();
@@ -437,8 +427,8 @@
             }
         }
         
-        function toggleAvailability(itemId) {
-            const result = toggleMenuItemAvailability(itemId);
+        async function toggleAvailability(itemId) {
+            const result = await toggleMenuItemAvailability(itemId);
             if (result.success) {
                 showNotification('Availability updated successfully', 'success');
                 loadMenuItems();
@@ -479,8 +469,6 @@
                     return;
                 }
             
-            const customer = getUserById(order.user_id);
-            
             document.getElementById('orderDetailsContent').innerHTML = `
                 <div class="order-detail-info">
                     <div class="detail-row">
@@ -489,15 +477,15 @@
                     </div>
                     <div class="detail-row">
                         <span class="label">Customer:</span>
-                        <span class="value">${customer?.username || 'Unknown'}</span>
+                        <span class="value">${order.username || 'Unknown'}</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">Email:</span>
-                        <span class="value">${customer?.email || 'Unknown'}</span>
+                        <span class="value">N/A</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">Order Time:</span>
-                        <span class="value">${new Date(order.timestamp).toLocaleString()}</span>
+                        <span class="value">${new Date(order.created_at || order.timestamp).toLocaleString()}</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">Payment Method:</span>
@@ -520,16 +508,16 @@
                             <div class="item-detail">
                                 <div class="item-info">
                                     <h5>${item.name}</h5>
-                                    <p>₹${item.price.toFixed(2)} × ${item.quantity}</p>
+                                    <p>₹${parseFloat(item.price).toFixed(2)} × ${item.quantity}</p>
                                 </div>
                                 <div class="item-total">
-                                    ₹${(item.price * item.quantity).toFixed(2)}
+                                    ₹${(parseFloat(item.price) * item.quantity).toFixed(2)}
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                     <div class="order-total-detail">
-                        <strong>Total: ₹${order.total_amount.toFixed(2)}</strong>
+                        <strong>Total: ₹${parseFloat(order.total_amount).toFixed(2)}</strong>
                     </div>
                 </div>
             `;
@@ -551,8 +539,8 @@
         
         function startNotificationPolling() {
             // Check for new orders every 30 seconds
-            setInterval(() => {
-                const orders = getAllOrders();
+            setInterval(async () => {
+                const orders = await getAllOrders();
                 const recentOrders = orders.filter(order => {
                     const orderTime = new Date(order.timestamp);
                     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
@@ -590,7 +578,7 @@
         }
         
         // Form submission handler
-        document.getElementById('menuItemForm').addEventListener('submit', function(e) {
+        document.getElementById('menuItemForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const itemId = document.getElementById('editItemId').value;
@@ -604,10 +592,10 @@
             let result;
             if (itemId) {
                 // Edit existing item
-                result = updateMenuItem(parseInt(itemId), itemData);
+                result = await updateMenuItem(parseInt(itemId), itemData);
             } else {
                 // Add new item
-                result = addMenuItem(itemData);
+                result = await addMenuItem(itemData);
             }
             
             if (result.success) {
@@ -619,6 +607,89 @@
                 showNotification(result.message, 'error');
             }
         });
+        
+        // Order verification function
+        async function verifyOrder() {
+            const orderId = document.getElementById('verifyOrderId').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('verificationResult');
+            
+            if (!orderId) {
+                resultDiv.className = 'verification-result error';
+                resultDiv.innerHTML = '<p>⚠️ Please enter an Order ID</p>';
+                resultDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const orders = await getAllOrders();
+                const order = orders.find(o => o.order_id === orderId);
+                
+                if (!order) {
+                    resultDiv.className = 'verification-result error';
+                    resultDiv.innerHTML = '<p>❌ Order not found</p>';
+                    resultDiv.classList.remove('hidden');
+                    return;
+                }
+                
+                // Show order details
+                let statusClass = 'info';
+                let statusIcon = '⏳';
+                let statusMessage = '';
+                
+                if (order.status === 'Completed') {
+                    statusClass = 'success';
+                    statusIcon = '✅';
+                    statusMessage = 'Already picked up';
+                } else if (order.status === 'Ready') {
+                    statusClass = 'success';
+                    statusIcon = '✅';
+                    statusMessage = 'Ready for pickup';
+                } else {
+                    statusClass = 'warning';
+                    statusIcon = '⏳';
+                    statusMessage = 'Still being prepared';
+                }
+                
+                resultDiv.className = `verification-result ${statusClass}`;
+                resultDiv.innerHTML = `
+                    <div class="verify-header">
+                        <h4>${statusIcon} Order ${orderId}</h4>
+                        <span class="verify-status">${statusMessage}</span>
+                    </div>
+                    <div class="verify-details">
+                        <p><strong>Customer:</strong> ${order.username || 'Unknown'}</p>
+                        <p><strong>Items:</strong> ${order.items.map(item => `${item.name} (x${item.quantity})`).join(', ')}</p>
+                        <p><strong>Total:</strong> ₹${parseFloat(order.total_amount).toFixed(2)}</p>
+                        <p><strong>Payment:</strong> ${order.payment_method}</p>
+                        <p><strong>Time:</strong> ${new Date(order.created_at || order.timestamp).toLocaleString()}</p>
+                    </div>
+                    ${order.status === 'Ready' ? 
+                        `<button onclick="markAsCompleted('${orderId}')" class="btn btn-primary" style="margin-top: 15px;">Mark as Collected</button>` : 
+                        ''}
+                `;
+                resultDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error verifying order:', error);
+                resultDiv.className = 'verification-result error';
+                resultDiv.innerHTML = '<p>❌ Error verifying order. Please try again.</p>';
+                resultDiv.classList.remove('hidden');
+            }
+        }
+        
+        // Mark order as completed
+        async function markAsCompleted(orderId) {
+            try {
+                await updateOrderStatus(orderId, 'Completed');
+                showNotification('Order marked as collected!', 'success');
+                document.getElementById('verifyOrderId').value = '';
+                document.getElementById('verificationResult').classList.add('hidden');
+                loadOrders();
+                loadDashboardStats();
+            } catch (error) {
+                console.error('Error marking order as completed:', error);
+                showNotification('Failed to update order', 'error');
+            }
+        }
         
         // Close modal when clicking outside
         window.onclick = function(event) {

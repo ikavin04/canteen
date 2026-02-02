@@ -112,7 +112,7 @@
                 }
                 
                 // Sort by timestamp (newest first)
-                filteredOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                filteredOrders.sort((a, b) => new Date(b.created_at || b.timestamp) - new Date(a.created_at || a.timestamp));
                 
                 if (filteredOrders.length === 0) {
                     ordersContainer.innerHTML = `
@@ -137,10 +137,10 @@
                         
                         <div class="order-info">
                             <div class="order-time">
-                                ${new Date(order.timestamp).toLocaleString()}
+                                ${new Date(order.created_at || order.timestamp).toLocaleString()}
                             </div>
                             <div class="order-amount">
-                                ₹${order.total_amount.toFixed(2)}
+                                ₹${parseFloat(order.total_amount).toFixed(2)}
                             </div>
                         </div>
                         
@@ -200,7 +200,7 @@
                     </div>
                     <div class="detail-row">
                         <span class="label">Date & Time:</span>
-                        <span class="value">${new Date(order.timestamp).toLocaleString()}</span>
+                        <span class="value">${new Date(order.created_at || order.timestamp).toLocaleString()}</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">Status:</span>
@@ -223,16 +223,16 @@
                             <div class="item-detail">
                                 <div class="item-info">
                                     <h5>${item.name}</h5>
-                                    <p>₹${item.price.toFixed(2)} × ${item.quantity}</p>
+                                    <p>₹${parseFloat(item.price).toFixed(2)} × ${item.quantity}</p>
                                 </div>
-                                <div class="item-total">
-                                    ₹${(item.price * item.quantity).toFixed(2)}
+                                <div class="item-subtotal">
+                                    ₹${(parseFloat(item.price) * item.quantity).toFixed(2)}
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                     <div class="order-total-detail">
-                        <strong>Total: ₹${order.total_amount.toFixed(2)}</strong>
+                        <strong>Total: ₹${parseFloat(order.total_amount).toFixed(2)}</strong>
                     </div>
                 </div>
                 
@@ -243,7 +243,7 @@
                             <div class="timeline-marker"></div>
                             <div class="timeline-content">
                                 <h5>Order Placed</h5>
-                                <p>${new Date(order.timestamp).toLocaleString()}</p>
+                                <p>${new Date(order.created_at || order.timestamp).toLocaleString()}</p>
                             </div>
                         </div>
                         <div class="timeline-item ${order.status !== 'Uncompleted' ? 'completed' : ''}">
@@ -310,7 +310,7 @@
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr><td style="padding: 5px; font-weight: bold;">Order ID:</td><td style="padding: 5px;">${order.order_id}</td></tr>
                             <tr><td style="padding: 5px; font-weight: bold;">Customer:</td><td style="padding: 5px;">${currentUser.username}</td></tr>
-                            <tr><td style="padding: 5px; font-weight: bold;">Date:</td><td style="padding: 5px;">${new Date(order.timestamp).toLocaleString()}</td></tr>
+                            <tr><td style="padding: 5px; font-weight: bold;">Date:</td><td style="padding: 5px;">${new Date(order.created_at || order.timestamp).toLocaleString()}</td></tr>
                             <tr><td style="padding: 5px; font-weight: bold;">Transaction ID:</td><td style="padding: 5px;">${order.transaction_id}</td></tr>
                             <tr><td style="padding: 5px; font-weight: bold;">Payment Method:</td><td style="padding: 5px;">${order.payment_method}</td></tr>
                             <tr><td style="padding: 5px; font-weight: bold;">Status:</td><td style="padding: 5px;">${order.status}</td></tr>
@@ -333,13 +333,13 @@
                                     <tr>
                                         <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
                                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${item.price.toFixed(2)}</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${(item.price * item.quantity).toFixed(2)}</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${parseFloat(item.price).toFixed(2)}</td>
+                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
                                     </tr>
                                 `).join('')}
                                 <tr style="background-color: #f0f0f0; font-weight: bold;">
                                     <td colspan="3" style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total Amount:</td>
-                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${order.total_amount.toFixed(2)}</td>
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${parseFloat(order.total_amount).toFixed(2)}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -382,12 +382,12 @@
         
         function startOrderStatusPolling() {
             // Check for status updates every 30 seconds
-            setInterval(() => {
-                const previousOrders = [...getUserOrders()];
+            setInterval(async () => {
+                const previousOrders = [...await getUserOrders()];
                 
                 // Simulate order status updates (in real app, this would poll server)
-                setTimeout(() => {
-                    const currentOrders = getUserOrders();
+                setTimeout(async () => {
+                    const currentOrders = await getUserOrders();
                     
                     // Check for status changes
                     currentOrders.forEach(currentOrder => {

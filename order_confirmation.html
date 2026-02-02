@@ -57,6 +57,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             const orderId = urlParams.get('orderId');
             
+            console.log('Looking for order ID:', orderId);
+            
             if (!orderId) {
                 document.getElementById('orderDetails').innerHTML = `
                     <div class="error-message">
@@ -68,7 +70,9 @@
             
             try {
                 const orders = await getUserOrders();
+                console.log('All orders:', orders);
                 const order = orders.find(o => o.order_id === orderId);
+                console.log('Found order:', order);
                 
                 if (!order) {
                     document.getElementById('orderDetails').innerHTML = `
@@ -95,11 +99,6 @@
             html += '</div>';
             
             html += '<div class="info-item">';
-            html += '<div class="info-label">Total Amount</div>';
-            html += `<div class="info-value info-amount">₹${order.total_amount.toFixed(2)}</div>`;
-            html += '</div>';
-            
-            html += '<div class="info-item">';
             html += '<div class="info-label">Payment Method</div>';
             html += `<div class="info-value">${order.payment_method}</div>`;
             html += '</div>';
@@ -111,7 +110,7 @@
             
             html += '<div class="info-item">';
             html += '<div class="info-label">Order Time</div>';
-            html += `<div class="info-value">${new Date(order.timestamp).toLocaleString()}</div>`;
+            html += `<div class="info-value">${new Date(order.created_at || order.timestamp).toLocaleString()}</div>`;
             html += '</div>';
             
             html += '</div></div>'; // Close order-info-box and order-summary-section
@@ -121,17 +120,38 @@
             html += '<h3 class="section-title">Items Ordered</h3>';
             html += '<div class="items-list">';
             
+            let subtotal = 0;
             order.items.forEach(item => {
+                const itemTotal = parseFloat(item.price) * item.quantity;
+                subtotal += itemTotal;
+                
                 html += '<div class="item-card">';
                 html += '<div class="item-left">';
                 html += `<div class="item-name">${item.name}</div>`;
-                html += `<div class="item-qty">Quantity: ${item.quantity}</div>`;
+                html += `<div class="item-details">`;
+                html += `<span class="item-qty">Qty: ${item.quantity}</span>`;
+                html += `<span class="item-unit-price">@ ₹${parseFloat(item.price).toFixed(2)}</span>`;
+                html += `</div>`;
                 html += '</div>';
-                html += `<div class="item-price">₹${(item.price * item.quantity).toFixed(2)}</div>`;
+                html += `<div class="item-price">₹${itemTotal.toFixed(2)}</div>`;
                 html += '</div>';
             });
             
-            html += '</div></div>'; // Close items-list and order-items-section
+            html += '</div>'; // Close items-list
+            
+            // Bill summary
+            html += '<div class="bill-summary">';
+            html += '<div class="bill-row subtotal">';
+            html += '<span class="bill-label">Subtotal</span>';
+            html += `<span class="bill-value">₹${subtotal.toFixed(2)}</span>`;
+            html += '</div>';
+            html += '<div class="bill-row total">';
+            html += '<span class="bill-label">Total Amount</span>';
+            html += `<span class="bill-value">₹${parseFloat(order.total_amount).toFixed(2)}</span>`;
+            html += '</div>';
+            html += '</div>'; // Close bill-summary
+            
+            html += '</div>'; // Close order-items-section
             
             document.getElementById('orderDetails').innerHTML = html;
             } catch (error) {

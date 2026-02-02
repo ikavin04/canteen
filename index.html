@@ -7,47 +7,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <h1 class="nav-logo">Smart Canteen</h1>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <div class="nav-menu">
-                <div class="nav-links">
-                    <a href="login.html" class="btn btn-primary">Login</a>
-                    <a href="register.html" class="btn btn-secondary">Register</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <main class="main-content">
-        <section class="hero">
-            <div class="hero-content">
-                <h1>Welcome to Smart Canteen</h1>
-                <p class="hero-subtitle">KGiSL Institute of Technology</p>
-                <p class="hero-description">
-                    Experience the future of campus dining with our digital canteen management system. 
-                    Order your favorite meals, track your orders, and enjoy seamless payment options.
-                </p>
-                <div class="hero-actions">
-                    <a href="register.html" class="btn btn-primary btn-large">Get Started</a>
-                    <a href="login.html" class="btn btn-secondary btn-large">Login</a>
-                </div>
-            </div>
-            
-            <div class="hero-features">
-                <div class="feature-card">
-                    <div class="feature-icon">MENU</div>
-                    <h3>Browse Menu</h3>
-                    <p>Explore our diverse menu with fresh and delicious options</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">CART</div>
+    <script src="app.js"></script>
+    <script>
+        // Auto-redirect based on user status
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+            // Logged in user - redirect to appropriate dashboard
+            if (currentUser.role === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'user_dashboard.html';
+            }
+        } else {
+            // Not logged in - redirect to welcome/splash screen
+            window.location.href = 'welcome.html';
+        }
+    </script>
+</body>
+</html>
                     <h3>Easy Ordering</h3>
                     <p>Add items to cart and place orders with just a few clicks</p>
                 </div>
@@ -122,11 +99,11 @@
             updateLandingStats();
         });
         
-        function updateLandingStats() {
+        async function updateLandingStats() {
             
-            const orders = getAllOrders();
-            const users = getAllUsers();
-            const menu = getMenu();
+            const orders = await getAllOrders();
+            const users = await getAllUsers();
+            const menu = await getMenu();
             
             if (orders.length > 0) {
                 document.getElementById('totalOrders').textContent = orders.length + '+';

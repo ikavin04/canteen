@@ -9,7 +9,23 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <h1 class="nav-logo">Smart Canteen</h1>
+            <h1 class="nav-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 2.18l7 3.82v8c0 4.52-2.98 8.69-7 9.93-4.02-1.24-7-5.41-7-9.93V8l7-3.82z"/>
+                    <path d="M8 10h3v8H8zm5 0h3v8h-3z" fill="#FF6B35"/>
+                </svg>
+                <span>Smart<br>Canteen</span>
+            </h1>
+            <button class="search-icon-btn" onclick="toggleSearch()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </button>
+            <div class="search-container" id="searchContainer" style="display: none;">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search food..." oninput="performSearch(this.value)">
+                <div id="searchResults" class="search-results"></div>
+            </div>
             <div class="nav-menu">
                 <button class="hamburger" id="hamburgerBtn" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle menu">
                     <span></span>
@@ -34,15 +50,51 @@
         <div id="notification" class="notification hidden"></div>
         
         <div class="dashboard-header">
-            <h2>Welcome to Smart Canteen</h2>
-            <div class="menu-controls">
-                <div class="filter-item">
-                    <label for="categoryFilter">Browse by Category:</label>
-                    <select id="categoryFilter" onchange="filterByCategory()" class="category-filter">
-                        <option value="">All Categories</option>
-                    </select>
+            <h2>Browse via Category</h2>
+        </div>
+
+        <!-- Category Browse Section -->
+        <div class="category-browse">
+            <div class="category-item" onclick="filterByCategory('All')">
+                <div class="category-circle">
+                    <img src="All Categories.png" alt="All Categories">
                 </div>
+                <span>All Categories</span>
             </div>
+            <div class="category-item" onclick="filterByCategory('Main Course')">
+                <div class="category-circle">
+                    <img src="Main Course.png" alt="Main Course">
+                </div>
+                <span>Main Course</span>
+            </div>
+            <div class="category-item" onclick="filterByCategory('Beverages')">
+                <div class="category-circle">
+                    <img src="Beverages.png" alt="Beverages">
+                </div>
+                <span>Beverages</span>
+            </div>
+            <div class="category-item" onclick="filterByCategory('Snacks')">
+                <div class="category-circle">
+                    <img src="Snacks.png" alt="Snacks">
+                </div>
+                <span>Snacks</span>
+            </div>
+            <div class="category-item" onclick="filterByCategory('Breakfast')">
+                <div class="category-circle">
+                    <img src="Breakfast.png" alt="Breakfast">
+                </div>
+                <span>Breakfast</span>
+            </div>
+            <div class="category-item" onclick="filterByCategory('Desserts')">
+                <div class="category-circle">
+                    <img src="Deseserts.png" alt="Desserts">
+                </div>
+                <span>Desserts</span>
+            </div>
+        </div>
+
+        <div class="menu-section-header">
+            <h2>Today's Menu</h2>
         </div>
 
         <div class="menu-grid" id="menuGrid">
@@ -75,25 +127,50 @@
     <!-- Bottom Navigation for Mobile/Tablet -->
     <nav class="bottom-nav">
         <a href="user_dashboard.html" class="bottom-nav-item active">
-            <div class="bottom-nav-icon">●</div>
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Menu</span>
         </a>
         <div class="bottom-nav-item" onclick="toggleCart()">
-            <div class="bottom-nav-icon">▢</div>
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Cart (<span id="bottomCartCount">0</span>)</span>
         </div>
         <a href="user_orders.html" class="bottom-nav-item">
-            <div class="bottom-nav-icon">≡</div>
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Orders</span>
         </a>
         <div class="bottom-nav-item" onclick="logout()">
-            <div class="bottom-nav-icon">◦</div>
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"></path>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Profile</span>
         </div>
     </nav>
 
     <script src="app.js"></script>
     <script>
+        // Initialize currentQuantities object
+        let currentQuantities = {};
+        
         // Check authentication
         const currentUser = getCurrentUser();
         if (!currentUser) {
@@ -129,10 +206,10 @@
             });
         });
         
-        function loadMenu() {
-            const menu = getMenu();
+        async function loadMenu() {
+            const menu = await getMenu();
             const menuGrid = document.getElementById('menuGrid');
-            const categoryFilter = document.getElementById('categoryFilter').value;
+            const categoryFilter = window.currentCategoryFilter || '';
             
             let filteredMenu = menu.filter(item => item.availability);
             if (categoryFilter) {
@@ -140,58 +217,168 @@
             }
             
             menuGrid.innerHTML = filteredMenu.map(item => `
-                <div class="menu-item">
+                <div class="menu-item" onclick="showAddToCartModal(${item.id})">
+                    <img src="${item.image_url || 'https://via.placeholder.com/100'}" alt="${item.item_name}" class="menu-item-image">
                     <div class="menu-item-content">
                         <h3>${item.item_name}</h3>
-                        <div class="price">₹${item.price.toFixed(2)}</div>
-                        <div class="category-tag">${item.category}</div>
-                    </div>
-                    <div class="menu-item-actions">
-                        <div class="quantity-controls">
-                            <button onclick="changeQuantity(${item.id}, -1)">-</button>
-                            <span id="qty-${item.id}">${(typeof currentQuantities !== 'undefined' && currentQuantities[item.id]) || 1}</span>
-                            <button onclick="changeQuantity(${item.id}, 1)">+</button>
-                        </div>
-                        <button onclick="addToCart(${item.id})" class="btn btn-primary">Add to Cart</button>
+                        <p class="menu-item-description">${item.description || ''}</p>
+                        <span class="price">₹${parseFloat(item.price).toFixed(0)}</span>
                     </div>
                 </div>
             `).join('');
             
         }
         
-        function loadCategories() {
-            const menu = getMenu();
+        async function loadCategories() {
+            const menu = await getMenu();
             const categories = [...new Set(menu.map(item => item.category))];
-            const categoryFilter = document.getElementById('categoryFilter');
-            
-            categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                categoryFilter.appendChild(option);
-            });
         }
         
-        function filterByCategory() {
+        function filterByCategory(category) {
+            window.currentCategoryFilter = category;
             loadMenu();
         }
+        
+        // Show add to cart modal with quantity controls
+        async function showAddToCartModal(itemId) {
+            const menuItem = await getMenuItemById(itemId);
+            if (!menuItem) return;
+            
+            const quantity = currentQuantities[itemId] || 1;
+            
+            const modalHTML = `
+                <div class="cart-modal-overlay" onclick="closeAddToCartModal()">
+                    <div class="cart-modal" onclick="event.stopPropagation()">
+                        <button class="modal-close" onclick="closeAddToCartModal()">×</button>
+                        <img src="${menuItem.image_url || 'https://via.placeholder.com/200'}" alt="${menuItem.item_name}" class="modal-image">
+                        <h3>${menuItem.item_name}</h3>
+                        <p class="modal-description">${menuItem.description || ''}</p>
+                        <div class="modal-price">₹${parseFloat(menuItem.price).toFixed(0)}</div>
+                        <div class="modal-quantity-controls">
+                            <button onclick="changeModalQuantity(${itemId}, -1)">-</button>
+                            <span id="modal-qty-${itemId}">${quantity}</span>
+                            <button onclick="changeModalQuantity(${itemId}, 1)">+</button>
+                        </div>
+                        <button onclick="addToCartFromModal(${itemId})" class="btn btn-primary modal-add-btn">Add to Cart</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        function closeAddToCartModal() {
+            const modal = document.querySelector('.cart-modal-overlay');
+            if (modal) modal.remove();
+        }
+        
+        function changeModalQuantity(itemId, change) {
+            if (!currentQuantities[itemId]) {
+                currentQuantities[itemId] = 1;
+            }
+            currentQuantities[itemId] = Math.max(1, currentQuantities[itemId] + change);
+            const qtyEl = document.getElementById(`modal-qty-${itemId}`);
+            if (qtyEl) qtyEl.textContent = currentQuantities[itemId];
+        }
+        
+        async function addToCartFromModal(itemId) {
+            const quantity = currentQuantities[itemId] || 1;
+            const result = await addItemToCart(itemId, quantity);
+            
+            if (result.success) {
+                showNotification(`Added ${quantity} item(s) to cart`, 'success');
+                updateCartUI();
+                closeAddToCartModal();
+            } else {
+                showNotification(result.message || 'Failed to add item', 'error');
+            }
+        }
+        
+        // Search functionality
+        let allMenuItems = [];
+        
+        function toggleSearch() {
+            const searchContainer = document.getElementById('searchContainer');
+            const searchInput = document.getElementById('searchInput');
+            
+            if (searchContainer.style.display === 'none') {
+                searchContainer.style.display = 'block';
+                searchInput.focus();
+            } else {
+                searchContainer.style.display = 'none';
+                searchInput.value = '';
+                document.getElementById('searchResults').innerHTML = '';
+            }
+        }
+        
+        async function performSearch(query) {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!query.trim()) {
+                searchResults.innerHTML = '';
+                return;
+            }
+            
+            if (allMenuItems.length === 0) {
+                allMenuItems = await getMenu();
+            }
+            
+            const filteredItems = allMenuItems.filter(item => 
+                item.availability && 
+                (item.item_name.toLowerCase().includes(query.toLowerCase()) ||
+                 item.category.toLowerCase().includes(query.toLowerCase()) ||
+                 (item.description && item.description.toLowerCase().includes(query.toLowerCase())))
+            );
+            
+            if (filteredItems.length === 0) {
+                searchResults.innerHTML = '<div class="search-no-results">No items found</div>';
+                return;
+            }
+            
+            searchResults.innerHTML = filteredItems.slice(0, 5).map(item => `
+                <div class="search-result-item" onclick="selectSearchItem(${item.id}); toggleSearch();">
+                    <img src="${item.image_url || 'https://via.placeholder.com/40'}" alt="${item.item_name}" class="search-item-image">
+                    <div class="search-item-content">
+                        <div class="search-item-name">${item.item_name}</div>
+                        <div class="search-item-price">₹${parseFloat(item.price).toFixed(0)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function selectSearchItem(itemId) {
+            showAddToCartModal(itemId);
+        }
+        
+        // Close search when clicking outside
+        document.addEventListener('click', function(e) {
+            const searchContainer = document.getElementById('searchContainer');
+            const searchBtn = document.querySelector('.search-icon-btn');
+            
+            if (searchContainer && searchBtn && 
+                !searchContainer.contains(e.target) && 
+                !searchBtn.contains(e.target)) {
+                searchContainer.style.display = 'none';
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchResults').innerHTML = '';
+            }
+        });
         
         // Use shared currentQuantities synced from cart
         // syncCurrentQuantitiesFromCart() (from app.js) will populate `currentQuantities`
         function changeQuantity(itemId, change) {
-            if (typeof currentQuantities === 'undefined') currentQuantities = {};
             if (!currentQuantities[itemId]) {
                 currentQuantities[itemId] = 1;
             }
 
-            currentQuantities[itemId] = Math.max(1, (currentQuantities[itemId] || 1) + change);
+            currentQuantities[itemId] = Math.max(1, currentQuantities[itemId] + change);
             const qtyEl = document.getElementById(`qty-${itemId}`);
             if (qtyEl) qtyEl.textContent = currentQuantities[itemId];
         }
         
-        function addToCart(itemId) {
-            const quantity = (typeof currentQuantities !== 'undefined' && currentQuantities[itemId]) || 1;
-            const result = addItemToCart(itemId, quantity);
+        async function addToCart(itemId) {
+            const quantity = currentQuantities[itemId] || 1;
+            const result = await addItemToCart(itemId, quantity);
             
             if (result.success) {
                 showNotification(`Added ${quantity} item(s) to cart`, 'success');
@@ -231,7 +418,7 @@
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
-                            <div class="cart-item-price">₹${item.price.toFixed(2)} × ${item.quantity}</div>
+                            <div class="cart-item-price">₹${parseFloat(item.price).toFixed(2)} × ${item.quantity}</div>
                         </div>
                         <div class="cart-item-actions">
                             <button onclick="updateCartQuantity(${item.id}, -1)" class="btn btn-small">-</button>
@@ -334,14 +521,14 @@
             }, 30000);
         }
         
-        function checkOrderUpdates() {
-            const orders = getUserOrders();
+        async function checkOrderUpdates() {
+            const orders = await getUserOrders();
             const lastCheck = localStorage.getItem('lastNotificationCheck') 
                 ? new Date(localStorage.getItem('lastNotificationCheck'))
                 : new Date(Date.now() - 24*60*60*1000); // 24 hours ago
             
             const recentUpdates = orders.filter(order => {
-                const orderTime = new Date(order.timestamp);
+                const orderTime = new Date(order.created_at || order.timestamp);
                 return orderTime > lastCheck && (order.status === 'Ready' || order.status === 'Completed');
             });
             

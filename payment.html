@@ -123,10 +123,10 @@
                 <div class="order-item">
                     <div class="item-details">
                         <h4>${item.name}</h4>
-                        <p>₹${item.price.toFixed(2)} × ${item.quantity}</p>
+                        <p>₹${parseFloat(item.price).toFixed(2)} × ${item.quantity}</p>
                     </div>
                     <div class="item-total">
-                        ₹${(item.price * item.quantity).toFixed(2)}
+                        ₹${(parseFloat(item.price) * item.quantity).toFixed(2)}
                     </div>
                 </div>
             `).join('');

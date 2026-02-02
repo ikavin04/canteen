@@ -15,12 +15,12 @@ function initializeDemoAccounts() {
 }
 
 // User Management Functions
-async function registerUser(username, email, password) {
+async function registerUser(username, email, password, userType = 'Student') {
     try {
         const response = await fetch(`${API_BASE_URL}/users/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
+            body: JSON.stringify({ username, email, password, user_type: userType })
         });
         const data = await response.json();
         if (data.success) {
@@ -52,6 +52,20 @@ async function loginUser(username, password) {
     } catch (error) {
         console.error('Login error:', error);
         return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+
+async function getAllUsers() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/users`);
+        const data = await response.json();
+        if (data.success && Array.isArray(data.users)) {
+            return data.users;
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
     }
 }
 

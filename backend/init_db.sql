@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     role TEXT DEFAULT 'user',
+    user_type TEXT DEFAULT 'Student',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

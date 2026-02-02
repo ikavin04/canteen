@@ -28,36 +28,42 @@ def init_db():
         conn = get_db_connection()
         cur = conn.cursor()
         
+        # Drop existing tables to recreate with correct schema
+        cur.execute("DROP TABLE IF EXISTS orders CASCADE")
+        cur.execute("DROP TABLE IF EXISTS menu_items CASCADE")
+        cur.execute("DROP TABLE IF EXISTS users CASCADE")
+        
         # Create users table
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT DEFAULT 'user',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
+            CREATE TABLE users (
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                role TEXT DEFAULT 'user',
+                user_type TEXT DEFAULT 'Student',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         """)
         
         # Create menu_items table
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS menu_items (
-            id SERIAL PRIMARY KEY,
-            item_name TEXT NOT NULL,
-            price NUMERIC(10, 2) NOT NULL,
-            category TEXT NOT NULL,
-            description TEXT,
-            availability BOOLEAN DEFAULT true,
-            image_url TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
+            CREATE TABLE menu_items (
+                id SERIAL PRIMARY KEY,
+                item_name TEXT NOT NULL,
+                price NUMERIC(10, 2) NOT NULL,
+                category TEXT NOT NULL,
+                description TEXT,
+                availability BOOLEAN DEFAULT true,
+                image_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         """)
         
         # Create orders table
         cur.execute("""
-        CREATE TABLE IF NOT EXISTS orders (
+        CREATE TABLE orders (
             id SERIAL PRIMARY KEY,
             order_id TEXT UNIQUE NOT NULL,
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -72,10 +78,42 @@ def init_db():
         )
         """)
         
+        # Insert demo users if they don't exist
+        cur.execute("""
+        INSERT INTO users (username, email, password, role) 
+        VALUES ('admin', 'admin@canteen.com', 'admin123', 'admin')
+        ON CONFLICT (username) DO NOTHING
+        """)
+        
+        cur.execute("""
+        INSERT INTO users (username, email, password, role) 
+        VALUES ('user', 'user@canteen.com', 'user123', 'user')
+        ON CONFLICT (username) DO NOTHING
+        """)
+        
+        # Insert demo menu items if table is empty
+        cur.execute("SELECT COUNT(*) FROM menu_items")
+        count = cur.fetchone()[0]
+        if count == 0:
+            cur.execute("""
+            INSERT INTO menu_items (item_name, price, category, description, availability) VALUES
+            ('Chicken Burger', 120.00, 'Main Course', 'Juicy chicken burger with fresh vegetables', true),
+            ('Vegetable Sandwich', 80.00, 'Snacks', 'Healthy vegetable sandwich with multigrain bread', true),
+            ('Coffee', 30.00, 'Beverages', 'Hot brewed coffee', true),
+            ('Tea', 25.00, 'Beverages', 'Hot masala tea', true),
+            ('Pasta', 150.00, 'Main Course', 'Italian pasta with white sauce', true),
+            ('French Fries', 60.00, 'Snacks', 'Crispy golden french fries', true),
+            ('Fresh Juice', 40.00, 'Beverages', 'Fresh fruit juice', true),
+            ('Pizza Slice', 100.00, 'Main Course', 'Cheesy pizza slice', true),
+            ('Samosa', 20.00, 'Snacks', 'Crispy vegetable samosa (2 pieces)', true),
+            ('Ice Cream', 50.00, 'Desserts', 'Vanilla ice cream cup', true)
+            """)
+        
         conn.commit()
         cur.close()
         conn.close()
         print("Database tables initialized successfully.")
+        print("Demo users: admin/admin123 (admin), user/user123 (user)")
     except Exception as e:
         print('init_db error:', e)
 
@@ -125,17 +163,18 @@ def api_register():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
+    user_type = data.get('user_type', 'Student')
     if not username or not email or not password:
         return jsonify({'success': False, 'message': 'username,email,password required'}), 400
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO users (username, email, password) VALUES (%s,%s,%s) RETURNING id, username, email, role', (username, email, password))
+        cur.execute('INSERT INTO users (username, email, password, user_type) VALUES (%s,%s,%s,%s) RETURNING id, username, email, role, user_type', (username, email, password, user_type))
         row = cur.fetchone()
         conn.commit()
         cur.close()
         conn.close()
-        return jsonify({'success': True, 'user': {'id': row[0], 'username': row[1], 'email': row[2], 'role': row[3]}})
+        return jsonify({'success': True, 'user': {'id': row[0], 'username': row[1], 'email': row[2], 'role': row[3], 'user_type': row[4]}})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
@@ -150,7 +189,7 @@ def api_login():
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute('SELECT id, username, email, role FROM users WHERE username=%s AND password=%s', (username, password))
+        cur.execute('SELECT id, username, email, role, user_type FROM users WHERE username=%s AND password=%s', (username, password))
         user = cur.fetchone()
         cur.close()
         conn.close()
@@ -160,13 +199,30 @@ def api_login():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/api/users', methods=['GET'])
+def api_get_users():
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute('SELECT id, username, email, role, user_type, created_at FROM users ORDER BY created_at DESC')
+        users = cur.fetchall()
+        cur.close()
+        conn.close()
+        return jsonify({'success': True, 'users': users})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
     data = request.get_json() or {}
     cart = data.get('cart', [])
     payment_method = data.get('payment_method', 'UPI')
-    user = data.get('user') or {}
-    user_id = user.get('id') if isinstance(user, dict) else None
+    
+    # Handle both direct user_id and nested user object
+    user_id = data.get('user_id')
+    if not user_id:
+        user = data.get('user') or {}
+        user_id = user.get('id') if isinstance(user, dict) else None
 
     if not cart:
         return jsonify({'success': False, 'message': 'Cart is empty'}), 400
