@@ -100,54 +100,55 @@
             startOrderStatusPolling();
         });
         
-        function loadOrders() {
-            const orders = getUserOrders();
-            const statusFilter = document.getElementById('statusFilter').value;
-            const ordersContainer = document.getElementById('ordersContainer');
-            
-            let filteredOrders = orders;
-            if (statusFilter) {
-                filteredOrders = orders.filter(order => order.status === statusFilter);
-            }
-            
-            // Sort by timestamp (newest first)
-            filteredOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            if (filteredOrders.length === 0) {
-                ordersContainer.innerHTML = `
-                    <div class="no-orders">
-                        <p>No orders found.</p>
-                        <a href="user_dashboard.html" class="btn btn-primary">Order Now</a>
-                    </div>
-                `;
-                return;
-            }
-            
-            ordersContainer.innerHTML = filteredOrders.map(order => `
-                <div class="order-card">
-                    <div class="order-header">
-                        <div class="order-id">
-                            <strong>Order #${order.order_id}</strong>
+        async function loadOrders() {
+            try {
+                const orders = await getUserOrders();
+                const statusFilter = document.getElementById('statusFilter').value;
+                const ordersContainer = document.getElementById('ordersContainer');
+                
+                let filteredOrders = orders;
+                if (statusFilter) {
+                    filteredOrders = orders.filter(order => order.status === statusFilter);
+                }
+                
+                // Sort by timestamp (newest first)
+                filteredOrders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                if (filteredOrders.length === 0) {
+                    ordersContainer.innerHTML = `
+                        <div class="no-orders">
+                            <p>No orders found.</p>
+                            <a href="user_dashboard.html" class="btn btn-primary">Order Now</a>
                         </div>
-                        <div class="order-status status-${order.status.toLowerCase()}">
-                            ${order.status}
+                    `;
+                    return;
+                }
+                
+                ordersContainer.innerHTML = filteredOrders.map(order => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-id">
+                                <strong>Order #${order.order_id}</strong>
+                            </div>
+                            <div class="order-status status-${order.status.toLowerCase()}">
+                                ${order.status}
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="order-info">
-                        <div class="order-time">
-                            ${new Date(order.timestamp).toLocaleString()}
+                        
+                        <div class="order-info">
+                            <div class="order-time">
+                                ${new Date(order.timestamp).toLocaleString()}
+                            </div>
+                            <div class="order-amount">
+                                ₹${order.total_amount.toFixed(2)}
+                            </div>
                         </div>
-                        <div class="order-amount">
-                            ₹${order.total_amount.toFixed(2)}
+                        
+                        <div class="order-items-summary">
+                            <p>${order.items.length} item(s): 
+                            ${order.items.slice(0, 2).map(item => item.name).join(', ')}
+                            ${order.items.length > 2 ? '...' : ''}</p>
                         </div>
-                    </div>
-                    
-                    <div class="order-items-summary">
-                        <p>${order.items.length} item(s): 
-                        ${order.items.slice(0, 2).map(item => item.name).join(', ')}
-                        ${order.items.length > 2 ? '...' : ''}</p>
-                    </div>
                     
                     <div class="order-actions">
                         <button onclick="viewOrderDetails('${order.order_id}')" class="btn btn-small">
@@ -166,22 +167,32 @@
                     </div>
                 </div>
             `).join('');
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                const ordersContainer = document.getElementById('ordersContainer');
+                ordersContainer.innerHTML = `
+                    <div class="no-orders">
+                        <p>Error loading orders. Please try again.</p>
+                    </div>
+                `;
+            }
         }
         
         function filterOrders() {
             loadOrders();
         }
         
-        function viewOrderDetails(orderId) {
-            const orders = getUserOrders();
-            const order = orders.find(o => o.order_id === orderId);
-            
-            if (!order) {
-                showNotification('Order not found', 'error');
-                return;
-            }
-            
-            document.getElementById('orderModalContent').innerHTML = `
+        async function viewOrderDetails(orderId) {
+            try {
+                const orders = await getUserOrders();
+                const order = orders.find(o => o.order_id === orderId);
+                
+                if (!order) {
+                    showNotification('Order not found', 'error');
+                    return;
+                }
+                
+                document.getElementById('orderModalContent').innerHTML = `
                 <div class="order-detail-info">
                     <div class="detail-row">
                         <span class="label">Order ID:</span>
@@ -254,27 +265,36 @@
             `;
             
             document.getElementById('orderModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error viewing order details:', error);
+                showNotification('Error loading order details', 'error');
+            }
         }
         
         function closeOrderModal() {
             document.getElementById('orderModal').style.display = 'none';
         }
         
-        function downloadBill(orderId) {
-            const orders = getUserOrders();
-            const order = orders.find(o => o.order_id === orderId);
+        async function downloadBill(orderId) {
+            try {
+                const orders = await getUserOrders();
+                const order = orders.find(o => o.order_id === orderId);
+                
+                if (!order) {
+                    showNotification('Order not found', 'error');
+                    return;
+                }
+                
+                if (order.status !== 'Ready' && order.status !== 'Completed') {
+                    showNotification('Bill not available yet. Order must be ready first.', 'warning');
+                    return;
+                }
             
-            if (!order) {
-                showNotification('Order not found', 'error');
-                return;
+                generateBillPDF(order);
+            } catch (error) {
+                console.error('Error downloading bill:', error);
+                showNotification('Error generating bill', 'error');
             }
-            
-            if (order.status !== 'Ready' && order.status !== 'Completed') {
-                showNotification('Bill not available yet. Order must be ready first.', 'warning');
-                return;
-            }
-            
-            generateBillPDF(order);
         }
         
         function generateBillPDF(order) {

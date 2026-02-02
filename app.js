@@ -1,207 +1,172 @@
+// Configuration
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// Initialize data
 function initializeData() {
-    if (!localStorage.getItem('smartCanteenMenu')) {
-        const sampleMenu = [
-            {
-                id: 1,
-                item_name: 'Chicken Burger',
-                price: 120.00,
-                category: 'Main Course',
-                availability: true
-            },
-            {
-                id: 2,
-                item_name: 'Vegetable Sandwich',
-                price: 80.00,
-                category: 'Snacks',
-                availability: true
-            },
-            {
-                id: 3,
-                item_name: 'Coffee',
-                price: 30.00,
-                category: 'Beverages',
-                availability: true
-            },
-            {
-                id: 4,
-                item_name: 'Tea',
-                price: 25.00,
-                category: 'Beverages',
-                availability: true
-            },
-            {
-                id: 5,
-                item_name: 'Pasta',
-                price: 150.00,
-                category: 'Main Course',
-                availability: true
-            },
-            {
-                id: 6,
-                item_name: 'French Fries',
-                price: 60.00,
-                category: 'Snacks',
-                availability: true
-            },
-            {
-                id: 7,
-                item_name: 'Fresh Juice',
-                price: 40.00,
-                category: 'Beverages',
-                availability: true
-            },
-            {
-                id: 8,
-                item_name: 'Biryani',
-                price: 180.00,
-                category: 'Main Course',
-                availability: true
-            }
-        ];
-        localStorage.setItem('smartCanteenMenu', JSON.stringify(sampleMenu));
-    }
+    // Cart is managed in localStorage for better UX
     if (!localStorage.getItem('smartCanteenCart')) {
         localStorage.setItem('smartCanteenCart', JSON.stringify([]));
     }
-    if (!localStorage.getItem('smartCanteenOrders')) {
-        localStorage.setItem('smartCanteenOrders', JSON.stringify([]));
-    }
 }
+
 function initializeDemoAccounts() {
-    if (!localStorage.getItem('smartCanteenUsers')) {
-        const demoUsers = [
-            {
-                id: 1,
-                username: 'admin',
-                email: 'admin@canteen.com',
-                password: 'admin123',
-                role: 'admin',
-                created_at: new Date().toISOString()
-            },
-            {
-                id: 2,
-                username: 'student1',
-                email: 'student1@college.edu',
-                password: 'password123',
-                role: 'user',
-                created_at: new Date().toISOString()
-            }
-        ];
-        localStorage.setItem('smartCanteenUsers', JSON.stringify(demoUsers));
+    // Demo accounts are now managed by the database
+    // This function is kept for backward compatibility
+}
+
+// User Management Functions
+async function registerUser(username, email, password) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+        });
+        const data = await response.json();
+        if (data.success) {
+            localStorage.setItem('smartCanteenCurrentUser', JSON.stringify(data.user));
+            return { success: true, message: 'Registration successful' };
+        } else {
+            return { success: false, message: data.message || 'Registration failed' };
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
 }
-function registerUser(username, email, password) {
-    const users = getAllUsers();
-    if (users.find(user => user.username === username)) {
-        return { success: false, message: 'Username already exists' };
+
+async function loginUser(username, password) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/users/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        if (data.success) {
+            localStorage.setItem('smartCanteenCurrentUser', JSON.stringify(data.user));
+            return { success: true, message: 'Login successful', user: data.user };
+        } else {
+            return { success: false, message: data.message || 'Login failed' };
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
-    if (users.find(user => user.email === email)) {
-        return { success: false, message: 'Email already registered' };
-    }
-    const newUser = {
-        id: Math.max(...users.map(u => u.id), 0) + 1,
-        username,
-        email,
-        password,
-        role: 'user',
-        created_at: new Date().toISOString()
-    };
-    users.push(newUser);
-    localStorage.setItem('smartCanteenUsers', JSON.stringify(users));
-    return { success: true, message: 'Registration successful' };
 }
-function loginUser(username, password) {
-    const users = getAllUsers();
-    const user = users.find(u => u.username === username && u.password === password);
-    if (!user) {
-        return { success: false, message: 'Invalid username or password' };
-    }
-    localStorage.setItem('smartCanteenCurrentUser', JSON.stringify(user));
-    return { success: true, message: 'Login successful', user };
-}
+
 function logout() {
     localStorage.removeItem('smartCanteenCurrentUser');
     localStorage.removeItem('smartCanteenCart');
     window.location.href = 'login.html';
 }
+
 function getCurrentUser() {
     const currentUser = localStorage.getItem('smartCanteenCurrentUser');
     return currentUser ? JSON.parse(currentUser) : null;
 }
-function getAllUsers() {
-    return JSON.parse(localStorage.getItem('smartCanteenUsers') || '[]');
-}
-function getUserById(userId) {
-    const users = getAllUsers();
-    return users.find(user => user.id === userId);
-}
-function getMenu() {
-    return JSON.parse(localStorage.getItem('smartCanteenMenu') || '[]');
-}
-function saveMenu(menu) {
-    localStorage.setItem('smartCanteenMenu', JSON.stringify(menu));
-}
-function getMenuItemById(id) {
-    const menu = getMenu();
-    return menu.find(item => item.id === id);
-}
-function addMenuItem(itemData) {
-    const menu = getMenu();
-    const newId = Math.max(...menu.map(item => item.id), 0) + 1;
-    const newItem = {
-        id: newId,
-        item_name: itemData.item_name,
-        price: parseFloat(itemData.price),
-        category: itemData.category,
-        availability: itemData.availability !== false
-    };
-    menu.push(newItem);
-    saveMenu(menu);
-    return { success: true, message: 'Menu item added successfully' };
-}
-function updateMenuItem(id, itemData) {
-    const menu = getMenu();
-    const itemIndex = menu.findIndex(item => item.id === id);
-    if (itemIndex === -1) {
-        return { success: false, message: 'Item not found' };
+
+// Menu Management Functions
+async function getMenu() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/menu`);
+        const data = await response.json();
+        if (data.success) {
+            return data.menu || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching menu:', error);
+        return [];
     }
-    menu[itemIndex] = {
-        ...menu[itemIndex],
-        item_name: itemData.item_name,
-        price: parseFloat(itemData.price),
-        category: itemData.category,
-        availability: itemData.availability !== false
-    };
-    saveMenu(menu);
-    return { success: true, message: 'Menu item updated successfully' };
 }
-function deleteMenuItemById(id) {
-    const menu = getMenu();
-    const updatedMenu = menu.filter(item => item.id !== id);
-    if (menu.length === updatedMenu.length) {
-        return { success: false, message: 'Item not found' };
+
+async function getMenuItemById(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/menu/${id}`);
+        const data = await response.json();
+        if (data.success) {
+            return data.item;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching menu item:', error);
+        return null;
     }
-    saveMenu(updatedMenu);
-    return { success: true, message: 'Menu item deleted successfully' };
 }
-function toggleMenuItemAvailability(id) {
-    const menu = getMenu();
-    const item = menu.find(item => item.id === id);
-    if (!item) {
-        return { success: false, message: 'Item not found' };
+
+async function addMenuItem(itemData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/menu`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemData)
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error adding menu item:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
-    item.availability = !item.availability;
-    saveMenu(menu);
-    return { success: true, message: 'Availability updated successfully' };
 }
+
+async function updateMenuItem(id, itemData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/menu/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemData)
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error updating menu item:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+
+async function deleteMenuItemById(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/menu/${id}`, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error deleting menu item:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+
+async function toggleMenuItemAvailability(id) {
+    try {
+        const menuItem = await getMenuItemById(id);
+        if (!menuItem) {
+            return { success: false, message: 'Item not found' };
+        }
+        const response = await fetch(`${API_BASE_URL}/menu/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ availability: !menuItem.availability })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error toggling availability:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+// Cart Management Functions (localStorage for better UX)
 function getCart() {
     return JSON.parse(localStorage.getItem('smartCanteenCart') || '[]');
 }
+
 function saveCart(cart) {
     localStorage.setItem('smartCanteenCart', JSON.stringify(cart));
 }
-function addItemToCart(itemId, quantity = 1) {
-    const menuItem = getMenuItemById(itemId);
+
+async function addItemToCart(itemId, quantity = 1) {
+    const menuItem = await getMenuItemById(itemId);
     if (!menuItem) {
         return { success: false, message: 'Item not found' };
     }
@@ -223,6 +188,7 @@ function addItemToCart(itemId, quantity = 1) {
     saveCart(cart);
     return { success: true, message: 'Item added to cart' };
 }
+
 function updateItemQuantity(itemId, change) {
     const cart = getCart();
     const item = cart.find(item => item.id === itemId);
@@ -236,34 +202,50 @@ function updateItemQuantity(itemId, change) {
     saveCart(cart);
     return { success: true, message: 'Quantity updated' };
 }
+
 function removeItemFromCart(itemId) {
     const cart = getCart();
     const updatedCart = cart.filter(item => item.id !== itemId);
     saveCart(updatedCart);
     return { success: true, message: 'Item removed from cart' };
 }
+
 function clearCart() {
     localStorage.setItem('smartCanteenCart', JSON.stringify([]));
 }
-function getAllOrders() {
-    return JSON.parse(localStorage.getItem('smartCanteenOrders') || '[]');
+
+// Order Management Functions
+async function getAllOrders() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/orders?admin=true`);
+        const data = await response.json();
+        if (data.success && Array.isArray(data.orders)) {
+            return data.orders;
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        return [];
+    }
 }
-function getUserOrders() {
+
+async function getUserOrders() {
     const currentUser = getCurrentUser();
     if (!currentUser) return [];
-    const orders = getAllOrders();
-    return orders.filter(order => order.user_id === currentUser.id);
+    try {
+        const response = await fetch(`${API_BASE_URL}/orders?user_id=${currentUser.id}`);
+        const data = await response.json();
+        if (data.success && Array.isArray(data.orders)) {
+            return data.orders;
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching user orders:', error);
+        return [];
+    }
 }
-function saveOrders(orders) {
-    localStorage.setItem('smartCanteenOrders', JSON.stringify(orders));
-}
-function generateOrderId() {
-    return 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-}
-function generateTransactionId() {
-    return 'TXN' + Math.random().toString(36).substr(2, 8).toUpperCase();
-}
-function placeOrder(cartItems, paymentMethod = 'UPI') {
+
+async function placeOrder(cartItems, paymentMethod = 'UPI') {
     if (!cartItems || cartItems.length === 0) {
         return { success: false, message: 'Cart is empty' };
     }
@@ -271,52 +253,58 @@ function placeOrder(cartItems, paymentMethod = 'UPI') {
     if (!currentUser) {
         return { success: false, message: 'Please login to place order' };
     }
-    const orders = getAllOrders();
-    const orderId = generateOrderId();
-    const transactionId = generateTransactionId();
-    const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const newOrder = {
-        id: orders.length + 1,
-        order_id: orderId,
-        user_id: currentUser.id,
-        items: cartItems.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity
-        })),
-        total_amount: totalAmount,
-        status: 'Uncompleted',
-        payment_method: paymentMethod,
-        payment_status: 'Paid',
-        transaction_id: transactionId,
-        timestamp: new Date().toISOString()
-    };
-    orders.push(newOrder);
-    saveOrders(orders);
-    return { 
-        success: true, 
-        message: 'Order placed successfully',
-        orderId: orderId,
-        transactionId: transactionId,
-        totalAmount: totalAmount
-    };
-}
-function updateOrderStatusById(orderId, newStatus) {
-    const orders = getAllOrders();
-    const order = orders.find(order => order.order_id === orderId);
-    if (!order) {
-        return { success: false, message: 'Order not found' };
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cart: cartItems,
+                payment_method: paymentMethod,
+                user: currentUser
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            clearCart();
+        }
+        return data;
+    } catch (error) {
+        console.error('Error placing order:', error);
+        return { success: false, message: 'Network error. Please try again.' };
     }
-    order.status = newStatus;
-    if (newStatus === 'Ready') {
-        order.ready_at = new Date().toISOString();
-    } else if (newStatus === 'Completed') {
-        order.completed_at = new Date().toISOString();
-    }
-    saveOrders(orders);
-    return { success: true, message: 'Order status updated successfully' };
 }
+
+async function updateOrderStatusById(orderId, newStatus) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        return { success: false, message: 'Network error. Please try again.' };
+    }
+}
+
+// Statistics Functions
+async function getStats() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/stats`);
+        const data = await response.json();
+        if (data.success) {
+            return data.stats;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        return null;
+    }
+}
+// UI Helper Functions
 function showTemporaryMessage(message, type) {
     const messageEl = document.createElement('div');
     messageEl.className = `temp-message ${type}`;
@@ -349,6 +337,7 @@ function showTemporaryMessage(message, type) {
         setTimeout(() => messageEl.remove(), 300);
     }, 3000);
 }
+
 function initializeMobileNav() {
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
@@ -371,6 +360,7 @@ function initializeMobileNav() {
         });
     }
 }
+
 function initializeTouchControls() {
     document.addEventListener('touchstart', (e) => {
         if (e.target.classList.contains('quantity-btn')) {
@@ -383,14 +373,13 @@ function initializeTouchControls() {
         }
     });
 }
+
 // Validation helpers
 function validateEmail(email) {
     if (!email || typeof email !== 'string') return false;
     email = email.trim();
-    // Basic structure check
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!re.test(email)) return false;
-    // disallow local part that is only digits (e.g., "123"@domain.com)
     const localPart = email.split('@')[0] || '';
     if (/^\d+$/.test(localPart)) return false;
     return true;
@@ -398,37 +387,20 @@ function validateEmail(email) {
 
 function validatePassword(password) {
     if (!password || typeof password !== 'string') return false;
-    // At least 8 chars, one uppercase, one special character
-    const re = /^(?=.{8,}$)(?=.*[A-Z])(?=.*[^A-Za-z0-9]).*$/;
-    return re.test(password);
+    return password.length >= 6;
 }
 
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializeMobileNav();
     initializeTouchControls();
 });
+
 initializeData();
 initializeDemoAccounts();
 
-// Menu/cart helpers improvements
-// Ensure menu quantity controls reflect cart and keep a synchronized map
-let currentQuantities = {};
-
-function syncCurrentQuantitiesFromCart() {
-    // default every menu item to 1, then override with cart quantities
-    currentQuantities = {};
-    const menu = getMenu();
-    menu.forEach(item => {
-        currentQuantities[item.id] = 1;
-    });
-    const cart = getCart();
-    cart.forEach(item => {
-        currentQuantities[item.id] = item.quantity;
-    });
-}
-
-// Expose for pages that rely on it
+// Expose functions for pages that rely on them
 window.validateEmail = validateEmail;
 window.validatePassword = validatePassword;
-window.syncCurrentQuantitiesFromCart = syncCurrentQuantitiesFromCart;
+
 

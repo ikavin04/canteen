@@ -1,7 +1,7 @@
 :root {
     /* Custom font - place font files in /fonts and browser will use them */
-    /* If you don't have Aleoverasans font file, the system fallbacks will be used */
-    --font-family-name: 'Aleoverasans';
+    /* If you don't have Aleoverasans font file, Inter from Google Fonts will be used */
+    --font-family-name: 'Inter', 'Aleoverasans';
     --fallback-fonts: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
     /* Palette provided by user */
@@ -36,10 +36,12 @@
     --transition: all 0.28s ease;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
 /* Prefer local/hosted font if available. Place font files in /fonts folder (e.g. Aleoverasans.woff2) */
 @font-face {
     font-family: 'Aleoverasans';
-    src: local('Aleoverasans'), url('../fonts/Aleoverasans.woff2') format('woff2');
+    src: local('Aleoverasans');
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;

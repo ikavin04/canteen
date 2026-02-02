@@ -48,12 +48,12 @@
         }
         
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('userName').textContent = currentUser.username;
-            loadOrderDetails();
+            await loadOrderDetails();
         });
         
-        function loadOrderDetails() {
+        async function loadOrderDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const orderId = urlParams.get('orderId');
             
@@ -66,17 +66,18 @@
                 return;
             }
             
-            const orders = getUserOrders();
-            const order = orders.find(o => o.order_id === orderId);
-            
-            if (!order) {
-                document.getElementById('orderDetails').innerHTML = `
-                    <div class="error-message">
-                        <p>Order not found. <a href="user_dashboard.html">Return to menu</a></p>
-                    </div>
-                `;
-                return;
-            }
+            try {
+                const orders = await getUserOrders();
+                const order = orders.find(o => o.order_id === orderId);
+                
+                if (!order) {
+                    document.getElementById('orderDetails').innerHTML = `
+                        <div class="error-message">
+                            <p>Order not found. <a href="user_dashboard.html">Return to menu</a></p>
+                        </div>
+                    `;
+                    return;
+                }
             
             // Build order details HTML with proper structure
             let html = '<div class="order-summary-section">';
@@ -133,6 +134,14 @@
             html += '</div></div>'; // Close items-list and order-items-section
             
             document.getElementById('orderDetails').innerHTML = html;
+            } catch (error) {
+                console.error('Error loading order details:', error);
+                document.getElementById('orderDetails').innerHTML = `
+                    <div class="error-message">
+                        <p>Error loading order details. <a href="user_dashboard.html">Return to menu</a></p>
+                    </div>
+                `;
+            }
         }
         
         function viewOrders() {

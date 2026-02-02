@@ -202,7 +202,9 @@
             showMessage('Processing payment...', 'info');
 
             // Try server-side checkout if backend available, otherwise fallback to local simulation
+            const currentUser = getCurrentUser();
             const payload = {
+                user_id: currentUser ? currentUser.id : null,
                 cart: cart,
                 payment_method: paymentMethod
             };
@@ -212,7 +214,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             }).then(res => {
-                if (!res.ok) throw new Error('No backend');
+                if (!res.ok) throw new Error('Payment failed');
                 return res.json();
             }).then(data => {
                 if (data && data.success) {
@@ -224,20 +226,8 @@
                 } else {
                     showMessage(data.message || 'Payment failed', 'error');
                 }
-            }).catch(() => {
-                // Fallback to local simulation when backend not present
-                setTimeout(() => {
-                    const result = placeOrder(cart, paymentMethod);
-                    if (result.success) {
-                        showMessage('Payment successful! Order placed.', 'success');
-                        clearCart();
-                        setTimeout(() => {
-                            window.location.href = `order_confirmation.html?orderId=${result.orderId}`;
-                        }, 1200);
-                    } else {
-                        showMessage(result.message, 'error');
-                    }
-                }, 1000);
+            }).catch(error => {
+                showMessage(error.message || 'Payment failed', 'error');
             });
         }
         

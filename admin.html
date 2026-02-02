@@ -334,29 +334,30 @@
             `).join('');
         }
         
-        function loadOrders() {
-            const orders = getAllOrders();
-            const statusFilter = document.getElementById('orderStatusFilter').value;
-            const searchTerm = document.getElementById('orderSearchInput').value.toLowerCase();
-            
-            let filteredOrders = orders;
-            
-            if (statusFilter) {
-                filteredOrders = filteredOrders.filter(order => order.status === statusFilter);
-            }
-            
-            if (searchTerm) {
-                filteredOrders = filteredOrders.filter(order => 
-                    order.order_id.toLowerCase().includes(searchTerm) ||
-                    (getUserById(order.user_id)?.username || '').toLowerCase().includes(searchTerm)
-                );
-            }
-            
-            const ordersTableBody = document.getElementById('ordersTableBody');
-            
-            ordersTableBody.innerHTML = filteredOrders.map(order => {
-                const customer = getUserById(order.user_id);
-                return `
+        async function loadOrders() {
+            try {
+                const orders = await getAllOrders();
+                const statusFilter = document.getElementById('orderStatusFilter').value;
+                const searchTerm = document.getElementById('orderSearchInput').value.toLowerCase();
+                
+                let filteredOrders = orders;
+                
+                if (statusFilter) {
+                    filteredOrders = filteredOrders.filter(order => order.status === statusFilter);
+                }
+                
+                if (searchTerm) {
+                    filteredOrders = filteredOrders.filter(order => 
+                        order.order_id.toLowerCase().includes(searchTerm) ||
+                        (getUserById(order.user_id)?.username || '').toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                const ordersTableBody = document.getElementById('ordersTableBody');
+                
+                ordersTableBody.innerHTML = filteredOrders.map(order => {
+                    const customer = getUserById(order.user_id);
+                    return `
                     <tr>
                         <td>${order.order_id}</td>
                         <td>${customer?.username || 'Unknown'}</td>
@@ -376,6 +377,11 @@
                     </tr>
                 `;
             }).join('');
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                const ordersTableBody = document.getElementById('ordersTableBody');
+                ordersTableBody.innerHTML = '<tr><td colspan="6">Error loading orders</td></tr>';
+            }
         }
         
         function getStatusColor(status) {
@@ -442,25 +448,36 @@
             }
         }
         
-        function updateOrderStatus(orderId, newStatus) {
-            const result = updateOrderStatusById(orderId, newStatus);
-            if (result.success) {
-                showNotification(`Order ${orderId} status updated to ${newStatus}`, 'success');
-                loadOrders();
-                loadDashboardStats();
-            } else {
-                showNotification(result.message, 'error');
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                const response = await fetch(`/api/orders/${orderId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showNotification(`Order ${orderId} status updated to ${newStatus}`, 'success');
+                    loadOrders();
+                    loadDashboardStats();
+                } else {
+                    throw new Error(result.message || 'Failed to update status');
+                }
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                showNotification('Failed to update order status', 'error');
             }
         }
         
-        function viewOrderDetails(orderId) {
-            const orders = getAllOrders();
-            const order = orders.find(o => o.order_id === orderId);
-            
-            if (!order) {
-                showNotification('Order not found', 'error');
-                return;
-            }
+        async function viewOrderDetails(orderId) {
+            try {
+                const orders = await getAllOrders();
+                const order = orders.find(o => o.order_id === orderId);
+                
+                if (!order) {
+                    showNotification('Order not found', 'error');
+                    return;
+                }
             
             const customer = getUserById(order.user_id);
             
@@ -518,6 +535,10 @@
             `;
             
             document.getElementById('orderDetailsModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error viewing order details:', error);
+                showNotification('Error loading order details', 'error');
+            }
         }
         
         function closeOrderDetailsModal() {

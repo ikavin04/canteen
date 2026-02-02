@@ -56,7 +56,7 @@
         initializeDemoAccounts();
         
         // Handle login form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Clear previous errors
@@ -84,19 +84,33 @@
                 return;
             }
             
-            const result = loginUser(username, password);
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
             
-            if (result.success) {
-                showMessage('Login successful! Redirecting...', 'success');
-                setTimeout(() => {
-                    if (result.user.role === 'admin') {
-                        window.location.href = 'admin.html';
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                }, 1000);
-            } else {
-                showMessage(result.message, 'error');
+            try {
+                const result = await loginUser(username, password);
+                
+                if (result.success) {
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1000);
+                } else {
+                    showMessage(result.message, 'error');
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                showMessage('An error occurred. Please try again.', 'error');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
         });
         
@@ -105,8 +119,8 @@
                 document.getElementById('username').value = 'admin';
                 document.getElementById('password').value = 'admin123';
             } else {
-                document.getElementById('username').value = 'student1';
-                document.getElementById('password').value = 'password123';
+                document.getElementById('username').value = 'user';
+                document.getElementById('password').value = 'user123';
             }
         }
         

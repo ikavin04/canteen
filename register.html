@@ -59,7 +59,7 @@
     <script src="app.js"></script>
     <script>
         // Handle registration form submission
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Clear previous errors
@@ -84,21 +84,21 @@
                 hasError = true;
             }
             
-            // Validate email: structure + not purely numeric local-part
+            // Validate email
             if (!email) {
                 document.getElementById('emailError').textContent = 'Please enter your email';
                 hasError = true;
             } else if (!validateEmail(email)) {
-                document.getElementById('emailError').textContent = 'Please enter a valid email (local-part cannot be only numbers)';
+                document.getElementById('emailError').textContent = 'Please enter a valid email address';
                 hasError = true;
             }
             
-            // Validate password (min 8, 1 uppercase, 1 special)
+            // Validate password
             if (!password) {
                 document.getElementById('passwordError').textContent = 'Please enter a password';
                 hasError = true;
             } else if (!validatePassword(password)) {
-                document.getElementById('passwordError').textContent = 'Password must be 8+ chars, include 1 uppercase and 1 special character';
+                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters long';
                 hasError = true;
             }
             
@@ -115,15 +115,29 @@
                 return;
             }
             
-            const result = registerUser(username, email, password);
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Registering...';
+            submitBtn.disabled = true;
             
-            if (result.success) {
-                showMessage('Registration successful! Redirecting to login...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-            } else {
-                showMessage(result.message, 'error');
+            try {
+                const result = await registerUser(username, email, password);
+                
+                if (result.success) {
+                    showMessage('Registration successful! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showMessage(result.message, 'error');
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                showMessage('An error occurred. Please try again.', 'error');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
         });
         
@@ -148,5 +162,6 @@
             }
         }
     </script>
+
 </body>
 </html>
