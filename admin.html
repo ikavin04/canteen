@@ -272,14 +272,20 @@
             const recentOrdersList = document.getElementById('recentOrdersList');
             
             recentOrdersList.innerHTML = recentOrders.map(order => {
+                const orderDate = new Date(order.created_at || order.timestamp);
+                const formattedDate = orderDate.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const formattedTime = orderDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                
                 return `
                     <div class="recent-order-item">
                         <div class="order-info">
-                            <div class="order-id-text"><strong>${order.order_id}</strong></div>
-                            <div class="order-customer">${order.username || 'Unknown'}</div>
+                            <div class="order-id-text">${order.order_id}</div>
+                            <div class="order-datetime">${formattedDate}, ${formattedTime}</div>
                         </div>
-                        <div class="order-details">
-                            <span class="order-amount">₹${parseFloat(order.total_amount).toFixed(2)}</span>
+                        <div class="order-user-type">
+                            <span class="user-type-badge">${order.user_type || 'Student'}</span>
+                        </div>
+                        <div class="order-status-col">
                             <span class="order-status status-${order.status.toLowerCase()}">${order.status}</span>
                         </div>
                     </div>
@@ -379,7 +385,6 @@
             document.getElementById('formTitle').textContent = 'Add New Menu Item';
             document.getElementById('editItemId').value = '';
             document.getElementById('menuItemForm').reset();
-            document.getElementById('itemAvailability').checked = true;
             document.getElementById('itemFormContainer').classList.remove('hidden');
         }
         
@@ -398,7 +403,6 @@
             document.getElementById('itemName').value = item.item_name;
             document.getElementById('itemPrice').value = item.price;
             document.getElementById('itemCategory').value = item.category;
-            document.getElementById('itemAvailability').checked = item.availability;
             document.getElementById('itemFormContainer').classList.remove('hidden');
         }
         
@@ -574,7 +578,7 @@
                 item_name: document.getElementById('itemName').value.trim(),
                 price: parseFloat(document.getElementById('itemPrice').value),
                 category: document.getElementById('itemCategory').value,
-                availability: document.getElementById('itemAvailability').checked
+                availability: true
             };
             
             let result;
