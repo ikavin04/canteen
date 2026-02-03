@@ -34,13 +34,18 @@
             <h2>My Orders</h2>
             <div class="filter-controls">
                 <div class="filter-item">
-                    <label for="statusFilter">Filter by Status:</label>
-                    <select id="statusFilter" onchange="filterOrders()" class="status-filter">
-                        <option value="">All Orders</option>
-                        <option value="Uncompleted">Preparing</option>
-                        <option value="Ready">Ready for Pickup</option>
-                        <option value="Completed">Completed</option>
-                    </select>
+                    <label for="statusFilter" class="filter-label">FILTER BY STATUS:</label>
+                    <div class="custom-select-wrapper">
+                        <select id="statusFilter" onchange="filterOrders()" class="status-filter">
+                            <option value="">All Orders</option>
+                            <option value="Uncompleted">Preparing</option>
+                            <option value="Ready">Ready for Pickup</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <svg class="select-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1L6 6L11 1" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
                 </div>
             </div>
         </div>
@@ -50,22 +55,94 @@
         </div>
     </main>
 
+    <!-- Profile Modal -->
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-modal-overlay" onclick="closeProfileModal()"></div>
+        <div class="profile-modal-content">
+            <button class="profile-close-btn" onclick="closeProfileModal()">&times;</button>
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="#FF6B35">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"></path>
+                    </svg>
+                </div>
+                <h2 id="profileUsername" class="profile-username">User</h2>
+                <div id="profileRole" class="profile-role-badge">Student</div>
+            </div>
+            <div class="profile-details">
+                <div class="profile-detail-item">
+                    <div class="profile-detail-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>Email</span>
+                    </div>
+                    <div id="profileEmail" class="profile-detail-value">user@example.com</div>
+                </div>
+                <div class="profile-detail-item">
+                    <div class="profile-detail-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Role</span>
+                    </div>
+                    <div id="profileRoleText" class="profile-detail-value">Student</div>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button onclick="logout()" class="btn btn-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation for Mobile/Tablet -->
     <nav class="bottom-nav">
         <a href="user_dashboard.html" class="bottom-nav-item">
-            <div class="bottom-nav-icon">●</div>
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Menu</span>
         </a>
         <div class="bottom-nav-item" onclick="window.location.href='user_dashboard.html'; setTimeout(() => toggleCart && toggleCart(), 100)">
-            <div class="bottom-nav-icon">▢</div>
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Cart</span>
         </div>
         <a href="user_orders.html" class="bottom-nav-item active">
-            <div class="bottom-nav-icon">≡</div>
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Orders</span>
         </a>
-        <div class="bottom-nav-item" onclick="logout()">
-            <div class="bottom-nav-icon">◦</div>
+        <div class="bottom-nav-item" onclick="openProfileModal()">
+            <div class="bottom-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"></path>
+                </svg>
+            </div>
             <span class="bottom-nav-label">Profile</span>
         </div>
     </nav>
@@ -118,7 +195,7 @@
                     ordersContainer.innerHTML = `
                         <div class="no-orders">
                             <p>No orders found.</p>
-                            <a href="user_dashboard.html" class="btn btn-primary">Order Now</a>
+                            <a href="user_dashboard.html" class="btn btn-primary order-now-btn">Order Now</a>
                         </div>
                     `;
                     return;
@@ -151,11 +228,11 @@
                         </div>
                     
                     <div class="order-actions">
-                        <button onclick="viewOrderDetails('${order.order_id}')" class="btn btn-small">
+                        <button onclick="viewOrderDetails('${order.order_id}')" class="btn btn-small btn-rounded">
                             View Details
                         </button>
                         ${order.status === 'Ready' || order.status === 'Completed' ? 
-                            `<button onclick="downloadBill('${order.order_id}')" class="btn btn-small btn-secondary">
+                            `<button onclick="downloadBill('${order.order_id}')" class="btn btn-small btn-secondary btn-rounded">
                                 Download Bill
                             </button>` : ''
                         }
@@ -298,86 +375,232 @@
         }
         
         function generateBillPDF(order) {
-            // Create a simple HTML bill and convert to PDF-like format
-            const billContent = `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1>KGiSL Institute of Technology</h1>
-                        <h2>Smart Canteen - Order Bill</h2>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr><td style="padding: 5px; font-weight: bold;">Order ID:</td><td style="padding: 5px;">${order.order_id}</td></tr>
-                            <tr><td style="padding: 5px; font-weight: bold;">Customer:</td><td style="padding: 5px;">${currentUser.username}</td></tr>
-                            <tr><td style="padding: 5px; font-weight: bold;">Date:</td><td style="padding: 5px;">${new Date(order.created_at || order.timestamp).toLocaleString()}</td></tr>
-                            <tr><td style="padding: 5px; font-weight: bold;">Transaction ID:</td><td style="padding: 5px;">${order.transaction_id}</td></tr>
-                            <tr><td style="padding: 5px; font-weight: bold;">Payment Method:</td><td style="padding: 5px;">${order.payment_method}</td></tr>
-                            <tr><td style="padding: 5px; font-weight: bold;">Status:</td><td style="padding: 5px;">${order.status}</td></tr>
-                        </table>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h3>Order Items:</h3>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
-                            <thead>
-                                <tr style="background-color: #f5f5f5;">
-                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Item</th>
-                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Quantity</th>
-                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Unit Price</th>
-                                    <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${order.items.map(item => `
-                                    <tr>
-                                        <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${parseFloat(item.price).toFixed(2)}</td>
-                                        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
-                                    </tr>
-                                `).join('')}
-                                <tr style="background-color: #f0f0f0; font-weight: bold;">
-                                    <td colspan="3" style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total Amount:</td>
-                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">₹${parseFloat(order.total_amount).toFixed(2)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 30px; font-style: italic;">
-                        Thank you for using Smart Canteen! Please show this bill when collecting your order.
-                    </div>
-                </div>
-            `;
-            
-            // Create a new window to print the bill
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
+            // Create bill HTML content
+            const billHTML = `
                 <!DOCTYPE html>
                 <html>
                 <head>
+                    <meta charset="UTF-8">
                     <title>Bill - ${order.order_id}</title>
                     <style>
-                        body { margin: 0; padding: 20px; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 40px;
+                            background: white;
+                        }
+                        .bill-container { 
+                            max-width: 800px; 
+                            margin: 0 auto;
+                        }
+                        .header { 
+                            text-align: center; 
+                            margin-bottom: 40px;
+                            border-bottom: 3px solid #F25623;
+                            padding-bottom: 20px;
+                        }
+                        .header h1 { 
+                            font-size: 28px; 
+                            color: #171717;
+                            margin-bottom: 8px;
+                        }
+                        .header h2 { 
+                            font-size: 20px; 
+                            color: #F25623;
+                        }
+                        .details-section { 
+                            margin-bottom: 30px;
+                            background: #F7F9FC;
+                            padding: 20px;
+                            border-radius: 8px;
+                        }
+                        .detail-row { 
+                            display: flex;
+                            padding: 8px 0;
+                            border-bottom: 1px solid #E0E7EF;
+                        }
+                        .detail-row:last-child { border-bottom: none; }
+                        .detail-label { 
+                            font-weight: bold; 
+                            width: 150px;
+                            color: #171717;
+                        }
+                        .detail-value { 
+                            color: #4D4D4D;
+                        }
+                        .items-section h3 { 
+                            font-size: 18px; 
+                            color: #F25623;
+                            margin-bottom: 15px;
+                        }
+                        .items-table { 
+                            width: 100%; 
+                            border-collapse: collapse;
+                            margin-bottom: 20px;
+                        }
+                        .items-table thead { 
+                            background: #F25623;
+                            color: white;
+                        }
+                        .items-table th { 
+                            padding: 12px; 
+                            text-align: left;
+                            font-weight: bold;
+                        }
+                        .items-table th:nth-child(2) { text-align: center; }
+                        .items-table th:nth-child(3),
+                        .items-table th:nth-child(4) { text-align: right; }
+                        .items-table td { 
+                            padding: 12px;
+                            border-bottom: 1px solid #E0E7EF;
+                        }
+                        .items-table td:nth-child(2) { text-align: center; }
+                        .items-table td:nth-child(3),
+                        .items-table td:nth-child(4) { text-align: right; }
+                        .items-table tbody tr:nth-child(even) { 
+                            background: #F7F9FC;
+                        }
+                        .total-row { 
+                            background: #F25623 !important;
+                            color: white;
+                            font-weight: bold;
+                            font-size: 16px;
+                        }
+                        .total-row td { 
+                            border-bottom: none;
+                            padding: 15px 12px;
+                        }
+                        .footer { 
+                            text-align: center;
+                            margin-top: 40px;
+                            padding-top: 20px;
+                            border-top: 2px solid #E0E7EF;
+                            color: #5A6C7D;
+                            font-style: italic;
+                        }
                         @media print {
-                            body { margin: 0; }
-                            .no-print { display: none; }
+                            body { padding: 20px; }
+                            .no-print { display: none !important; }
+                        }
+                        .print-buttons {
+                            text-align: center;
+                            margin: 30px 0;
+                            padding: 20px;
+                            background: #F7F9FC;
+                            border-radius: 8px;
+                        }
+                        .print-btn {
+                            padding: 12px 30px;
+                            margin: 0 10px;
+                            font-size: 16px;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-weight: bold;
+                        }
+                        .btn-download {
+                            background: #F25623;
+                            color: white;
+                        }
+                        .btn-download:hover {
+                            background: #CC3D0F;
+                        }
+                        .btn-close {
+                            background: #E0E7EF;
+                            color: #171717;
+                        }
+                        .btn-close:hover {
+                            background: #CCCCCC;
                         }
                     </style>
                 </head>
                 <body>
-                    ${billContent}
-                    <div class="no-print" style="text-align: center; margin-top: 20px;">
-                        <button onclick="window.print()" style="padding: 10px 20px; margin: 5px;">Print Bill</button>
-                        <button onclick="window.close()" style="padding: 10px 20px; margin: 5px;">Close</button>
+                    <div class="bill-container">
+                        <div class="header">
+                            <h1>KGiSL Institute of Technology</h1>
+                            <h2>Smart Canteen - Order Bill</h2>
+                        </div>
+                        
+                        <div class="details-section">
+                            <div class="detail-row">
+                                <div class="detail-label">Order ID:</div>
+                                <div class="detail-value">${order.order_id}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Customer:</div>
+                                <div class="detail-value">${currentUser.username || currentUser.email.split('@')[0]}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Date & Time:</div>
+                                <div class="detail-value">${new Date(order.created_at || order.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Transaction ID:</div>
+                                <div class="detail-value">${order.transaction_id}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Payment Method:</div>
+                                <div class="detail-value">${order.payment_method}</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Status:</div>
+                                <div class="detail-value">${order.status}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="items-section">
+                            <h3>Order Items</h3>
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${order.items.map(item => `
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>₹${parseFloat(item.price).toFixed(2)}</td>
+                                            <td>₹${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
+                                        </tr>
+                                    `).join('')}
+                                    <tr class="total-row">
+                                        <td colspan="3" style="text-align: right;">Total Amount:</td>
+                                        <td>₹${parseFloat(order.total_amount).toFixed(2)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="footer">
+                            <p>Thank you for using Smart Canteen!</p>
+                            <p>Please show this bill when collecting your order.</p>
+                        </div>
+                        
+                        <div class="print-buttons no-print">
+                            <button class="print-btn btn-download" onclick="window.print()">Save as PDF / Print</button>
+                            <button class="print-btn btn-close" onclick="window.close()">Close</button>
+                        </div>
                     </div>
                 </body>
                 </html>
-            `);
-            printWindow.document.close();
+            `;
             
-            showNotification('Bill opened in new window', 'success');
+            // Open in new window
+            const billWindow = window.open('', '_blank');
+            billWindow.document.write(billHTML);
+            billWindow.document.close();
+            
+            // Auto-trigger print dialog after a short delay
+            setTimeout(() => {
+                billWindow.print();
+            }, 500);
+            
+            showNotification('Bill opened. Use "Save as PDF" in print dialog to download.', 'success');
         }
         
         function startOrderStatusPolling() {
@@ -460,6 +683,29 @@
             setTimeout(() => {
                 notification.classList.add('hidden');
             }, 5000);
+        }
+        
+        function openProfileModal() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+            
+            // Extract username from email (part before @)
+            const username = currentUser.email ? currentUser.email.split('@')[0] : currentUser.username;
+            
+            // Update modal content
+            document.getElementById('profileUsername').textContent = username;
+            document.getElementById('profileEmail').textContent = currentUser.email || currentUser.username;
+            document.getElementById('profileRole').textContent = currentUser.user_type || currentUser.role || 'Student';
+            document.getElementById('profileRoleText').textContent = currentUser.user_type || currentUser.role || 'Student';
+            
+            // Show modal
+            document.getElementById('profileModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeProfileModal() {
+            document.getElementById('profileModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
         
         // Close modal when clicking outside

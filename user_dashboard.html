@@ -124,6 +124,56 @@
         <div id="cartOverlay" class="cart-overlay" onclick="toggleCart()"></div>
     </main>
 
+    <!-- Profile Modal -->
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-modal-overlay" onclick="closeProfileModal()"></div>
+        <div class="profile-modal-content">
+            <button class="profile-close-btn" onclick="closeProfileModal()">&times;</button>
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="#FF6B35">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"></path>
+                    </svg>
+                </div>
+                <h2 id="profileUsername" class="profile-username">User</h2>
+                <div id="profileRole" class="profile-role-badge">Student</div>
+            </div>
+            <div class="profile-details">
+                <div class="profile-detail-item">
+                    <div class="profile-detail-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <span>Email</span>
+                    </div>
+                    <div id="profileEmail" class="profile-detail-value">user@example.com</div>
+                </div>
+                <div class="profile-detail-item">
+                    <div class="profile-detail-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Role</span>
+                    </div>
+                    <div id="profileRoleText" class="profile-detail-value">Student</div>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button onclick="logout()" class="btn btn-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation for Mobile/Tablet -->
     <nav class="bottom-nav">
         <a href="user_dashboard.html" class="bottom-nav-item active">
@@ -155,7 +205,7 @@
             </div>
             <span class="bottom-nav-label">Orders</span>
         </a>
-        <div class="bottom-nav-item" onclick="logout()">
+        <div class="bottom-nav-item" onclick="openProfileModal()">
             <div class="bottom-nav-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="8" r="4"></circle>
@@ -671,6 +721,36 @@
                 notification.classList.add('hidden');
             }, 3000);
         }
+        
+        function openProfileModal() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) return;
+            
+            // Extract username from email (part before @)
+            const username = currentUser.email ? currentUser.email.split('@')[0] : currentUser.username;
+            
+            // Update modal content
+            document.getElementById('profileUsername').textContent = username;
+            document.getElementById('profileEmail').textContent = currentUser.email || currentUser.username;
+            document.getElementById('profileRole').textContent = currentUser.user_type || currentUser.role || 'Student';
+            document.getElementById('profileRoleText').textContent = currentUser.user_type || currentUser.role || 'Student';
+            
+            // Show modal
+            document.getElementById('profileModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeProfileModal() {
+            document.getElementById('profileModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close profile modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeProfileModal();
+            }
+        });
         
         function startNotificationPolling() {
             // Check for order status updates every 30 seconds

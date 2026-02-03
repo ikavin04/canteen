@@ -63,9 +63,9 @@
                 <div class="verification-section">
                     <h3>Verify Order for Pickup</h3>
                     <div class="verify-container">
-                        <div class="form-group" style="margin-bottom: 15px;">
+                        <div class="form-group">
                             <label for="verifyOrderId">Enter Order ID</label>
-                            <input type="text" id="verifyOrderId" placeholder="ORD-XXXXXX" style="text-transform: uppercase; font-size: 1.1rem; padding: 12px;">
+                            <input type="text" id="verifyOrderId" placeholder="ORD-XXXXXX" style="text-transform: uppercase; font-size: 1.1rem; padding: 14px 16px; border-radius: 20px;">
                         </div>
                         <button onclick="verifyOrder()" class="btn btn-primary">Verify Order</button>
                     </div>
@@ -111,13 +111,6 @@
                                         <option value="Desserts">Desserts</option>
                                     </select>
                                 </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" id="itemAvailability" checked>
-                                    Available for ordering
-                                </label>
                             </div>
                             
                             <div class="form-actions">
@@ -279,20 +272,15 @@
             const recentOrdersList = document.getElementById('recentOrdersList');
             
             recentOrdersList.innerHTML = recentOrders.map(order => {
-                const statusEmoji = {
-                    'Uncompleted': '⏳',
-                    'Ready': '✅',
-                    'Completed': '✔️'
-                };
                 return `
                     <div class="recent-order-item">
                         <div class="order-info">
-                            <strong>${order.order_id}</strong>
-                            <span class="order-customer">👤 ${order.username || 'Unknown'}</span>
+                            <div class="order-id-text"><strong>${order.order_id}</strong></div>
+                            <div class="order-customer">${order.username || 'Unknown'}</div>
                         </div>
                         <div class="order-details">
                             <span class="order-amount">₹${parseFloat(order.total_amount).toFixed(2)}</span>
-                            <span class="order-status status-${order.status.toLowerCase()}">${statusEmoji[order.status]} ${order.status}</span>
+                            <span class="order-status status-${order.status.toLowerCase()}">${order.status}</span>
                         </div>
                     </div>
                 `;
