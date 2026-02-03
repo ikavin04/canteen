@@ -1957,18 +1957,6 @@ a:hover {
     margin-left: 12px;
     white-space: nowrap;
 }
-    font-weight: 500;
-}
-.item-price {
-    font-size: 1.25rem;
-    font-weight: 800;
-    background: #FFFFFF;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-left: 24px;
-    white-space: nowrap;
-}
 
 .confirmation-actions {
     display: flex;

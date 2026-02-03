@@ -6,6 +6,7 @@ from psycopg2.extras import RealDictCursor
 from flask import send_from_directory
 import json
 import uuid
+import random
 from psycopg2.extras import Json
 
 app = Flask(__name__)
@@ -20,6 +21,37 @@ DB_PORT = os.environ.get('DB_PORT', '5432')
 def get_db_connection():
     conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
     return conn
+
+def generate_unique_order_id(user_type, conn):
+    """Generate a unique order ID based on user type with format ORD-{PREFIX}{6-digit-number}"""
+    # Define prefixes based on user type
+    prefix_map = {
+        'Student': 'STU',
+        'Staff': 'FAC', 
+        'Faculty': 'FAC',
+        'Guest': 'GUE'
+    }
+    
+    prefix = prefix_map.get(user_type, 'GUE')  # Default to guest prefix if type not found
+    
+    # Keep trying until we get a unique order ID
+    max_attempts = 100  # Prevent infinite loop
+    for _ in range(max_attempts):
+        # Generate random 6-digit number
+        random_number = random.randint(100000, 999999)
+        order_id = f'ORD-{prefix}{random_number}'
+        
+        # Check if this order ID already exists
+        cur = conn.cursor()
+        cur.execute('SELECT COUNT(*) FROM orders WHERE order_id = %s', (order_id,))
+        count = cur.fetchone()[0]
+        cur.close()
+        
+        if count == 0:
+            return order_id
+    
+    # Fallback if we can't generate unique ID (very unlikely)
+    return f'ORD-{prefix}{uuid.uuid4().hex[:6].upper()}'
 
 
 def init_db():
@@ -226,6 +258,9 @@ def checkout():
 
     if not cart:
         return jsonify({'success': False, 'message': 'Cart is empty'}), 400
+    
+    if not user_id:
+        return jsonify({'success': False, 'message': 'User ID is required'}), 400
 
     # Basic server-side validation for cart items
     for item in cart:
@@ -236,12 +271,21 @@ def checkout():
     except Exception:
         return jsonify({'success': False, 'message': 'Invalid price/quantity in cart'}), 400
 
-    # Create order record
-    order_id = 'ORD-' + uuid.uuid4().hex[:10].upper()
-    transaction_id = 'TXN' + uuid.uuid4().hex[:10].upper()
+    # Get user type for order ID generation
     try:
         conn = get_db_connection()
         cur = conn.cursor()
+        cur.execute('SELECT user_type FROM users WHERE id = %s', (user_id,))
+        user_row = cur.fetchone()
+        if not user_row:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        user_type = user_row[0]
+        
+        # Generate unique order ID based on user type
+        order_id = generate_unique_order_id(user_type, conn)
+        transaction_id = 'TXN' + uuid.uuid4().hex[:10].upper()
+        
+        # Insert the order
         cur.execute("INSERT INTO orders (order_id, user_id, items, total_amount, status, payment_method, payment_status, transaction_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING order_id",
                     (order_id, user_id, Json(cart), total_amount, 'Uncompleted', payment_method, 'Paid', transaction_id))
         row = cur.fetchone()
@@ -251,8 +295,11 @@ def checkout():
         return jsonify({'success': True, 'message': 'Payment processed', 'orderId': row[0] if row else order_id, 'amount': total_amount})
     except Exception as e:
         print('DB error:', e)
-        # fallback: return demo response
-        return jsonify({'success': True, 'message': 'Payment processed (demo)', 'orderId': order_id, 'amount': total_amount})
+        if 'conn' in locals():
+            conn.close()
+        # fallback: return demo response with fallback order ID
+        fallback_order_id = 'ORD-GUE' + str(random.randint(100000, 999999))
+        return jsonify({'success': True, 'message': 'Payment processed (demo)', 'orderId': fallback_order_id, 'amount': total_amount})
 
 
 @app.route('/api/orders', methods=['GET'])
