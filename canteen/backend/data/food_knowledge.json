@@ -1,0 +1,102 @@
+[
+  {
+    "item": "Tea",
+    "type": "Beverage",
+    "taste_profile": "Light, warm, aromatic",
+    "consumption_time": "Morning, Evening, Anytime",
+    "pairs_well_with": ["Biscuits", "Rusks", "Samosa", "Puffs"],
+    "reason": "Tea is traditionally consumed with light snacks. The warmth and slight bitterness complement fried and baked items.",
+    "cultural_context": "Tea is a staple in Indian culture, often served with snacks during breaks",
+    "nutritional_note": "Contains caffeine, best paired with carbohydrate-rich snacks for sustained energy"
+  },
+  {
+    "item": "Coffee",
+    "type": "Beverage",
+    "taste_profile": "Strong, bitter, aromatic",
+    "consumption_time": "Morning, Evening",
+    "pairs_well_with": ["Cookies", "Donuts", "Cake Slice", "Biscuits"],
+    "reason": "Coffee's bold flavor pairs excellently with sweet baked goods. The contrast creates a balanced taste experience.",
+    "cultural_context": "Popular among students for late-night study sessions and morning wake-up",
+    "nutritional_note": "Higher caffeine content than tea, pairs well with sweet items to balance energy"
+  },
+  {
+    "item": "Milk",
+    "type": "Beverage",
+    "taste_profile": "Creamy, mild, nutritious",
+    "consumption_time": "Morning, Night",
+    "pairs_well_with": ["Cornflakes", "Bread Toast", "Cookies"],
+    "reason": "Milk is a breakfast staple that complements cereals and bread-based items perfectly.",
+    "cultural_context": "Essential for breakfast in college hostels and homes",
+    "nutritional_note": "High in protein and calcium, ideal breakfast combination"
+  },
+  {
+    "item": "Fried Rice",
+    "type": "Main Course",
+    "taste_profile": "Savory, slightly oily, flavorful",
+    "consumption_time": "Lunch, Dinner",
+    "pairs_well_with": ["Gobi Manchurian", "Chilli Chicken", "Spring Rolls"],
+    "reason": "Indo-Chinese cuisine combinations. The dry preparation of fried rice pairs well with gravy-based sides.",
+    "cultural_context": "Popular fusion food in Indian college canteens",
+    "nutritional_note": "Carbohydrate-rich main course, best with protein-rich sides"
+  },
+  {
+    "item": "Biriyani",
+    "type": "Main Course",
+    "taste_profile": "Aromatic, spicy, rich",
+    "consumption_time": "Lunch, Dinner",
+    "pairs_well_with": ["Chicken 65", "Egg Masala", "Raita", "Pickle"],
+    "reason": "Traditional biriyani is a complete meal but enhanced with protein sides and cooling raita to balance spices.",
+    "cultural_context": "Weekend special and celebration food in colleges",
+    "nutritional_note": "Complete meal with rice, protein, and spices; raita aids digestion"
+  },
+  {
+    "item": "Noodles",
+    "type": "Main Course",
+    "taste_profile": "Mild, versatile, slightly tangy",
+    "consumption_time": "Lunch, Dinner, Evening Snack",
+    "pairs_well_with": ["Spring Rolls", "Manchurian", "Chilli Chicken"],
+    "reason": "Indo-Chinese meal combinations that students love. Noodles serve as the carb base for flavorful sides.",
+    "cultural_context": "Most popular quick meal option in college canteens",
+    "nutritional_note": "Quick energy source, benefits from protein-rich accompaniments"
+  },
+  {
+    "item": "Burger",
+    "type": "Main Course",
+    "taste_profile": "Savory, filling, multi-textured",
+    "consumption_time": "Lunch, Dinner, Evening",
+    "pairs_well_with": ["French Fries", "Cold Drink", "Coleslaw"],
+    "reason": "Classic Western fast food combo. Crispy fries and cold drinks enhance the burger experience.",
+    "cultural_context": "Popular comfort food and quick meal for busy students",
+    "nutritional_note": "High in calories and carbs; often consumed as a complete meal"
+  },
+  {
+    "item": "Samosa",
+    "type": "Snack",
+    "taste_profile": "Crispy, spicy, savory",
+    "consumption_time": "Evening, Anytime",
+    "pairs_well_with": ["Tea", "Coffee", "Chutney"],
+    "reason": "The quintessential Indian tea-time snack. Hot beverages complement the fried, spicy filling perfectly.",
+    "cultural_context": "Most popular evening snack in Indian colleges",
+    "nutritional_note": "Fried snack best enjoyed with hot beverages for better digestion"
+  },
+  {
+    "item": "Pasta",
+    "type": "Main Course",
+    "taste_profile": "Creamy or tangy, rich",
+    "consumption_time": "Lunch, Dinner",
+    "pairs_well_with": ["Garlic Bread", "French Fries", "Coleslaw"],
+    "reason": "Italian-style meal. Garlic bread is traditional pairing, while fries add a crispy texture contrast.",
+    "cultural_context": "Growing popularity among urban college students",
+    "nutritional_note": "Carbohydrate-heavy meal; garlic bread adds complementary flavors"
+  },
+  {
+    "item": "Sandwich",
+    "type": "Snack",
+    "taste_profile": "Light, fresh, versatile",
+    "consumption_time": "Breakfast, Evening Snack",
+    "pairs_well_with": ["French Fries", "Cold Drink", "Tea"],
+    "reason": "Light meal that pairs well with sides and beverages. Popular for quick meals between classes.",
+    "cultural_context": "Convenient grab-and-go option for students",
+    "nutritional_note": "Balanced meal with vegetables and bread; can be made healthier with whole grain"
+  }
+]
