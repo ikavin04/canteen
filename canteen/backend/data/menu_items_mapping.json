@@ -1,0 +1,86 @@
+[
+  {
+    "item_id": "tea",
+    "db_name": "Tea",
+    "normalized_name": "tea",
+    "aliases": ["chai", "tea"]
+  },
+  {
+    "item_id": "coffee",
+    "db_name": "Coffee",
+    "normalized_name": "coffee",
+    "aliases": ["coffee", "kapi"]
+  },
+  {
+    "item_id": "milk",
+    "db_name": "Milk",
+    "normalized_name": "milk",
+    "aliases": ["milk", "paal"]
+  },
+  {
+    "item_id": "biscuits",
+    "db_name": "Biscuits",
+    "normalized_name": "biscuits",
+    "aliases": ["biscuits", "cookies"]
+  },
+  {
+    "item_id": "rusks",
+    "db_name": "Rusks",
+    "normalized_name": "rusks",
+    "aliases": ["rusks", "toast"]
+  },
+  {
+    "item_id": "samosa",
+    "db_name": "Samosa",
+    "normalized_name": "samosa",
+    "aliases": ["samosa", "samosas"]
+  },
+  {
+    "item_id": "french_fries",
+    "db_name": "French Fries",
+    "normalized_name": "french_fries",
+    "aliases": ["french fries", "fries", "french_fries"]
+  },
+  {
+    "item_id": "chicken_burger",
+    "db_name": "Chicken Burger",
+    "normalized_name": "chicken_burger",
+    "aliases": ["chicken burger", "chicken_burger", "burger"]
+  },
+  {
+    "item_id": "vegetable_sandwich",
+    "db_name": "Vegetable Sandwich",
+    "normalized_name": "vegetable_sandwich",
+    "aliases": ["vegetable sandwich", "veg sandwich", "sandwich"]
+  },
+  {
+    "item_id": "pasta",
+    "db_name": "Pasta",
+    "normalized_name": "pasta",
+    "aliases": ["pasta"]
+  },
+  {
+    "item_id": "pizza_slice",
+    "db_name": "Pizza Slice",
+    "normalized_name": "pizza_slice",
+    "aliases": ["pizza slice", "pizza", "pizza_slice"]
+  },
+  {
+    "item_id": "fresh_juice",
+    "db_name": "Fresh Juice",
+    "normalized_name": "fresh_juice",
+    "aliases": ["fresh juice", "juice", "fresh_juice"]
+  },
+  {
+    "item_id": "ice_cream",
+    "db_name": "Ice Cream",
+    "normalized_name": "ice_cream",
+    "aliases": ["ice cream", "icecream", "ice_cream"]
+  },
+  {
+    "item_id": "cold_drink",
+    "db_name": "Cold Drink",
+    "normalized_name": "cold_drink",
+    "aliases": ["cold drink", "soft drink", "soda", "coke", "pepsi"]
+  }
+]

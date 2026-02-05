@@ -1,0 +1,116 @@
+{
+  "tea": {
+    "category": "beverage",
+    "pairs_with": ["biscuits", "rusks", "puffs", "samosa"],
+    "priority": [1, 2, 3, 4],
+    "reason": "Tea pairs well with light snacks and fried items"
+  },
+  "coffee": {
+    "category": "beverage",
+    "pairs_with": ["cookies", "donuts", "cake_slice", "biscuits"],
+    "priority": [1, 2, 3, 4],
+    "reason": "Coffee complements sweet baked goods"
+  },
+  "milk": {
+    "category": "beverage",
+    "pairs_with": ["cornflakes", "bread_toast", "cookies"],
+    "priority": [1, 2, 3],
+    "reason": "Milk is ideal with cereals and bread-based items"
+  },
+  "fried_rice": {
+    "category": "main_course",
+    "pairs_with": ["gobi_manchurian", "chilli_chicken", "spring_rolls"],
+    "priority": [1, 2, 3],
+    "reason": "Indo-Chinese combinations that complement each other"
+  },
+  "biriyani": {
+    "category": "main_course",
+    "pairs_with": ["chicken_65", "egg_masala", "raita", "pickle"],
+    "priority": [1, 2, 3, 4],
+    "reason": "Traditional biriyani accompaniments"
+  },
+  "biryani": {
+    "category": "main_course",
+    "pairs_with": ["chicken_65", "egg_masala", "raita", "pickle"],
+    "priority": [1, 2, 3, 4],
+    "reason": "Traditional biryani accompaniments (alternate spelling)"
+  },
+  "noodles": {
+    "category": "main_course",
+    "pairs_with": ["spring_rolls", "manchurian", "chilli_chicken"],
+    "priority": [1, 2, 3],
+    "reason": "Popular Indo-Chinese meal combinations"
+  },
+  "pasta": {
+    "category": "main_course",
+    "pairs_with": ["garlic_bread", "french_fries", "coleslaw"],
+    "priority": [1, 2, 3],
+    "reason": "Italian-style meal combinations"
+  },
+  "burger": {
+    "category": "main_course",
+    "pairs_with": ["french_fries", "cold_drink", "coleslaw"],
+    "priority": [1, 2, 3],
+    "reason": "Classic burger combo items"
+  },
+  "chicken_burger": {
+    "category": "main_course",
+    "pairs_with": ["french_fries", "cold_drink", "coleslaw"],
+    "priority": [1, 2, 3],
+    "reason": "Classic burger combo items"
+  },
+  "pizza": {
+    "category": "main_course",
+    "pairs_with": ["garlic_bread", "cold_drink", "french_fries"],
+    "priority": [1, 2, 3],
+    "reason": "Popular pizza meal additions"
+  },
+  "pizza_slice": {
+    "category": "main_course",
+    "pairs_with": ["garlic_bread", "cold_drink", "french_fries"],
+    "priority": [1, 2, 3],
+    "reason": "Popular pizza meal additions"
+  },
+  "sandwich": {
+    "category": "snacks",
+    "pairs_with": ["french_fries", "cold_drink", "tea"],
+    "priority": [1, 2, 3],
+    "reason": "Light meal combinations"
+  },
+  "vegetable_sandwich": {
+    "category": "snacks",
+    "pairs_with": ["french_fries", "cold_drink", "tea"],
+    "priority": [1, 2, 3],
+    "reason": "Light meal combinations"
+  },
+  "samosa": {
+    "category": "snacks",
+    "pairs_with": ["tea", "coffee", "chutney"],
+    "priority": [1, 2, 3],
+    "reason": "Traditional tea-time snack"
+  },
+  "french_fries": {
+    "category": "snacks",
+    "pairs_with": ["ketchup", "cold_drink", "burger"],
+    "priority": [1, 2, 3],
+    "reason": "Popular side item"
+  },
+  "dosa": {
+    "category": "main_course",
+    "pairs_with": ["sambar", "chutney", "vada"],
+    "priority": [1, 2, 3],
+    "reason": "Traditional South Indian breakfast combination"
+  },
+  "idli": {
+    "category": "main_course",
+    "pairs_with": ["sambar", "chutney", "vada"],
+    "priority": [1, 2, 3],
+    "reason": "Traditional South Indian breakfast combination"
+  },
+  "paratha": {
+    "category": "main_course",
+    "pairs_with": ["curd", "pickle", "raita"],
+    "priority": [1, 2, 3],
+    "reason": "North Indian breakfast/lunch pairing"
+  }
+}
