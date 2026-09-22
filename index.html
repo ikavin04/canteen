@@ -3,123 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Canteen - KGiSL Institute</title>
+    <title>Smart Canteen - KGiSL Institute of Technology</title>
+    <meta name="description" content="Digital Smart Canteen dining solution for KGiSL Institute of Technology. Contactless ordering, instant Razorpay payments, and live kitchen tracking.">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <script src="app.js"></script>
-    <script>
-        // Auto-redirect based on user status
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-            // Logged in user - redirect to appropriate dashboard
-            if (currentUser.role === 'admin') {
-                window.location.href = 'admin.html';
-            } else {
-                window.location.href = 'user_dashboard.html';
-            }
-        } else {
-            // Not logged in - redirect to welcome/splash screen
-            window.location.href = 'welcome.html';
-        }
-    </script>
-</body>
-</html>
-                    <h3>Easy Ordering</h3>
-                    <p>Add items to cart and place orders with just a few clicks</p>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 2.18l7 3.82v8c0 4.52-2.98 8.69-7 9.93-4.02-1.24-7-5.41-7-9.93V8l7-3.82z"/>
+                    <path d="M8 10h3v8H8zm5 0h3v8h-3z" fill="#FF5E36"/>
+                </svg>
+                <span>Smart<br>Canteen</span>
+            </a>
+            <div class="nav-menu">
+                <button class="hamburger" id="hamburgerBtn" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="nav-links" id="navLinks">
+                    <a href="user_dashboard.html">Explore Menu</a>
+                    <a href="login.html" class="btn btn-outline btn-small" id="navLoginBtn">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small" id="navRegisterBtn">Register</a>
                 </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">PAY</div>
-                    <h3>Quick Payment</h3>
-                    <p>Multiple payment options including UPI, Card, and Cash</p>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-subtitle" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    Campus Dining Reimagined
                 </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">TRACK</div>
-                    <h3>Order Tracking</h3>
-                    <p>Track your order status and get notified when ready</p>
+                <h1>Fast, Fresh & <span>Smart Dining</span></h1>
+                <p class="hero-description">
+                    Skip the long canteen queues at KGiSL! Browse today's live menu, customize your order, pay securely with Razorpay or UPI, and track preparation in real-time.
+                </p>
+                <div class="hero-actions">
+                    <a href="user_dashboard.html" class="btn btn-primary btn-large" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                        Order Now
+                    </a>
+                    <a href="register.html" class="btn btn-secondary btn-large">Create Free Account</a>
+                </div>
+
+                <!-- Live Campus Stats -->
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <h3 id="statMenuCount">15+</h3>
+                        <p>Menu Delicacies</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3 id="statOrderCount">500+</h3>
+                        <p>Orders Served</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3 id="statUserCount">350+</h3>
+                        <p>Happy Students & Staff</p>
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- Features Grid -->
+        <section class="features-section">
+            <h2 class="section-title">Why Students Love Smart Canteen</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <h3>Zero Wait Time</h3>
+                    <p>Order ahead between lecture breaks. Pick up your hot meal the moment your token turns ready.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    </div>
+                    <h3>Razorpay & UPI Instant Pay</h3>
+                    <p>Secure contactless payments with Google Pay, PhonePe, Paytm, cards, or digital token wallet.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                    </div>
+                    <h3>Live Kitchen Tracking</h3>
+                    <p>Track your food lifecycle from preparation to counter collection with live status updates.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action Banner -->
         <section class="cta">
             <div class="cta-content">
-                <h2>Ready to Get Started?</h2>
-                <p>Join Smart Canteen today and transform your dining experience</p>
+                <h2>Hungry? Your Meal is Just 3 Clicks Away!</h2>
+                <p>Join hundreds of KGiSL students and faculty enjoying seamless digital dining every single day.</p>
                 <div class="cta-actions">
-                    <a href="register.html" class="btn btn-primary btn-large">Create Account</a>
-                    <a href="login.html" class="btn btn-outline btn-large">Login Now</a>
+                    <a href="user_dashboard.html" class="btn btn-primary btn-large">Browse Today's Specials</a>
+                    <a href="login.html" class="btn btn-outline btn-large" style="color: white; border-color: rgba(255,255,255,0.4);">Sign In to Account</a>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
                 <h3>Smart Canteen</h3>
-                <p>Digital dining solution for KGiSL Institute of Technology</p>
+                <p>Digital dining solution engineered for KGiSL Institute of Technology. Modern, contactless, and lightning fast.</p>
             </div>
-            
             <div class="footer-section">
-                <h3>Quick Links</h3>
+                <h3>Navigation</h3>
                 <ul>
-                    <li><a href="login.html">Login</a></li>
-                    <li><a href="register.html">Register</a></li>
+                    <li><a href="user_dashboard.html">Daily Menu</a></li>
+                    <li><a href="login.html">Student & Staff Login</a></li>
+                    <li><a href="register.html">New User Registration</a></li>
+                    <li><a href="admin.html">Canteen Admin Portal</a></li>
                 </ul>
             </div>
-            
             <div class="footer-section">
-                <h3>Contact</h3>
-                <p>KGiSL Institute of Technology<br>
-                Coimbatore, Tamil Nadu</p>
+                <h3>Location</h3>
+                <p>KGiSL Campus Cafeteria<br>Saravanampatti, Coimbatore<br>Tamil Nadu - 641035</p>
             </div>
         </div>
-        
         <div class="footer-bottom">
-            <p>&copy; 2025 Smart Canteen. All rights reserved.</p>
+            <p>&copy; 2026 Smart Canteen &bull; KGiSL Institute of Technology. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="app.js"></script>
     <script>
-        
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-            if (currentUser.role === 'admin') {
-                window.location.href = 'admin.html';
-            } else {
-                window.location.href = 'user_dashboard.html';
-            }
-        }
-        
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            updateLandingStats();
-        });
-        
-        async function updateLandingStats() {
-            
-            const orders = await getAllOrders();
-            const users = await getAllUsers();
-            const menu = await getMenu();
-            
-            if (orders.length > 0) {
-                document.getElementById('totalOrders').textContent = orders.length + '+';
-            }
-            
-            if (users.length > 0) {
-                const userCount = users.filter(user => user.role === 'user').length;
-                if (userCount > 0) {
-                    document.getElementById('totalUsers').textContent = userCount + '+';
+        // Check if user is already logged in to customize navbar
+        document.addEventListener('DOMContentLoaded', async function() {
+            initializeMobileNav();
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                const navLinks = document.getElementById('navLinks');
+                if (currentUser.role === 'admin') {
+                    navLinks.innerHTML = `
+                        <a href="admin.html" class="btn btn-primary btn-small">Admin Dashboard</a>
+                        <button onclick="logout()" class="btn btn-outline btn-small">Logout</button>
+                    `;
+                } else {
+                    navLinks.innerHTML = `
+                        <a href="user_dashboard.html">Menu</a>
+                        <a href="user_orders.html">My Orders</a>
+                        <a href="user_dashboard.html" class="btn btn-primary btn-small">Dashboard (${currentUser.username})</a>
+                        <button onclick="logout()" class="btn btn-outline btn-small">Logout</button>
+                    `;
                 }
             }
-            
-            if (menu.length > 0) {
-                document.getElementById('menuItems').textContent = menu.length + '+';
+
+            // Fetch live menu count
+            try {
+                const menu = await getMenu();
+                if (menu && menu.length > 0) {
+                    document.getElementById('statMenuCount').textContent = menu.length + '+';
+                }
+            } catch (e) {
+                console.log('Stats note:', e);
             }
-        }
+        });
     </script>
 </body>
 </html>

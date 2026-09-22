@@ -1,25 +1,62 @@
-// Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+// Smart Canteen - Frontend API & State Client
+// Configuration: dynamically adapt to same-origin or localhost:5000
+const API_BASE_URL = (typeof window !== 'undefined' && (window.location.port === '5000' || !window.location.port && window.location.protocol.startsWith('http')))
+    ? '/api'
+    : (typeof window !== 'undefined' && window.location.hostname)
+        ? `${window.location.protocol}//${window.location.hostname}:5000/api`
+        : 'http://localhost:5000/api';
 
-// Initialize data
+// Authentication & Request Helper
+function getAuthHeaders() {
+    const user = getCurrentUser();
+    const headers = { 'Content-Type': 'application/json' };
+    if (user && user.id) {
+        headers['X-User-Id'] = String(user.id);
+    }
+    if (user && user.role) {
+        headers['X-User-Role'] = String(user.role);
+    }
+    return headers;
+}
+
+async function apiFetch(endpoint, options = {}) {
+    let url = endpoint;
+    if (!url.startsWith('http')) {
+        // Strip leading /api if endpoint starts with /api/
+        let ep = endpoint;
+        if (ep.startsWith('/api/')) {
+            ep = ep.substring(4);
+        }
+        const cleanEndpoint = ep.startsWith('/') ? ep : '/' + ep;
+        url = `${API_BASE_URL}${cleanEndpoint}`;
+    }
+    const config = {
+        credentials: 'include',
+        ...options,
+        headers: {
+            ...getAuthHeaders(),
+            ...(options.headers || {})
+        }
+    };
+    return fetch(url, config);
+}
+
+// Initialize data in localStorage
 function initializeData() {
-    // Cart is managed in localStorage for better UX
     if (!localStorage.getItem('smartCanteenCart')) {
         localStorage.setItem('smartCanteenCart', JSON.stringify([]));
     }
 }
 
 function initializeDemoAccounts() {
-    // Demo accounts are now managed by the database
-    // This function is kept for backward compatibility
+    // Demo accounts are maintained on PostgreSQL backend
 }
 
 // User Management Functions
 async function registerUser(username, email, password, userType = 'Student') {
     try {
-        const response = await fetch(`${API_BASE_URL}/users/register`, {
+        const response = await apiFetch('/users/register', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password, user_type: userType })
         });
         const data = await response.json();
@@ -37,9 +74,8 @@ async function registerUser(username, email, password, userType = 'Student') {
 
 async function loginUser(username, password) {
     try {
-        const response = await fetch(`${API_BASE_URL}/users/login`, {
+        const response = await apiFetch('/users/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
         const data = await response.json();
@@ -57,7 +93,7 @@ async function loginUser(username, password) {
 
 async function getAllUsers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/users`);
+        const response = await apiFetch('/users');
         if (response.status === 401 || response.status === 403) {
             if (window.location.pathname.includes('admin.html')) {
                 localStorage.removeItem('smartCanteenCurrentUser');
@@ -77,20 +113,25 @@ async function getAllUsers() {
 }
 
 function logout() {
+    apiFetch('/users/logout', { method: 'POST' }).catch(() => {});
     localStorage.removeItem('smartCanteenCurrentUser');
     localStorage.removeItem('smartCanteenCart');
     window.location.href = 'login.html';
 }
 
 function getCurrentUser() {
-    const currentUser = localStorage.getItem('smartCanteenCurrentUser');
-    return currentUser ? JSON.parse(currentUser) : null;
+    try {
+        const currentUser = localStorage.getItem('smartCanteenCurrentUser');
+        return currentUser ? JSON.parse(currentUser) : null;
+    } catch (e) {
+        return null;
+    }
 }
 
 // Menu Management Functions
 async function getMenu() {
     try {
-        const response = await fetch(`${API_BASE_URL}/menu`);
+        const response = await apiFetch('/menu');
         const data = await response.json();
         if (data.success) {
             return data.menu || [];
@@ -104,7 +145,7 @@ async function getMenu() {
 
 async function getMenuItemById(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/menu/${id}`);
+        const response = await apiFetch(`/menu/${id}`);
         const data = await response.json();
         if (data.success) {
             return data.item;
@@ -118,9 +159,8 @@ async function getMenuItemById(id) {
 
 async function addMenuItem(itemData) {
     try {
-        const response = await fetch(`${API_BASE_URL}/menu`, {
+        const response = await apiFetch('/menu', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(itemData)
         });
         const data = await response.json();
@@ -133,9 +173,8 @@ async function addMenuItem(itemData) {
 
 async function updateMenuItem(id, itemData) {
     try {
-        const response = await fetch(`${API_BASE_URL}/menu/${id}`, {
+        const response = await apiFetch(`/menu/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(itemData)
         });
         const data = await response.json();
@@ -148,7 +187,7 @@ async function updateMenuItem(id, itemData) {
 
 async function deleteMenuItemById(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/menu/${id}`, {
+        const response = await apiFetch(`/menu/${id}`, {
             method: 'DELETE'
         });
         const data = await response.json();
@@ -165,9 +204,8 @@ async function toggleMenuItemAvailability(id) {
         if (!menuItem) {
             return { success: false, message: 'Item not found' };
         }
-        const response = await fetch(`${API_BASE_URL}/menu/${id}`, {
+        const response = await apiFetch(`/menu/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ availability: !menuItem.availability })
         });
         const data = await response.json();
@@ -177,13 +215,42 @@ async function toggleMenuItemAvailability(id) {
         return { success: false, message: 'Network error. Please try again.' };
     }
 }
-// Cart Management Functions (localStorage for better UX)
+
+// Cart Management Functions (localStorage for instant UX)
 function getCart() {
-    return JSON.parse(localStorage.getItem('smartCanteenCart') || '[]');
+    try {
+        return JSON.parse(localStorage.getItem('smartCanteenCart') || '[]');
+    } catch (e) {
+        return [];
+    }
 }
 
 function saveCart(cart) {
     localStorage.setItem('smartCanteenCart', JSON.stringify(cart));
+}
+
+function addToCart(item, quantity = 1) {
+    if (!item) return { success: false, message: 'Invalid item' };
+    const cart = getCart();
+    const itemId = item.id;
+    const existingItem = cart.find(i => i.id === itemId);
+    const name = item.item_name || item.name || 'Item';
+    const price = parseFloat(item.price) || 0;
+    const imageUrl = item.image_url || '';
+
+    if (existingItem) {
+        existingItem.quantity += quantity;
+    } else {
+        cart.push({
+            id: itemId,
+            name: name,
+            price: price,
+            quantity: quantity,
+            image_url: imageUrl
+        });
+    }
+    saveCart(cart);
+    return { success: true, message: 'Item added to cart' };
 }
 
 async function addItemToCart(itemId, quantity = 1) {
@@ -194,20 +261,7 @@ async function addItemToCart(itemId, quantity = 1) {
     if (!menuItem.availability) {
         return { success: false, message: 'Item is not available' };
     }
-    const cart = getCart();
-    const existingItem = cart.find(item => item.id === itemId);
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        cart.push({
-            id: menuItem.id,
-            name: menuItem.item_name,
-            price: menuItem.price,
-            quantity: quantity
-        });
-    }
-    saveCart(cart);
-    return { success: true, message: 'Item added to cart' };
+    return addToCart(menuItem, quantity);
 }
 
 function updateItemQuantity(itemId, change) {
@@ -238,7 +292,7 @@ function clearCart() {
 // Order Management Functions
 async function getAllOrders() {
     try {
-        const response = await fetch(`${API_BASE_URL}/orders?admin=true`);
+        const response = await apiFetch('/orders?admin=true');
         if (response.status === 401 || response.status === 403) {
             if (window.location.pathname.includes('admin.html')) {
                 localStorage.removeItem('smartCanteenCurrentUser');
@@ -261,7 +315,7 @@ async function getUserOrders() {
     const currentUser = getCurrentUser();
     if (!currentUser) return [];
     try {
-        const response = await fetch(`${API_BASE_URL}/orders?user_id=${currentUser.id}`);
+        const response = await apiFetch(`/orders?user_id=${currentUser.id}`);
         const data = await response.json();
         if (data.success && Array.isArray(data.orders)) {
             return data.orders;
@@ -283,9 +337,8 @@ async function placeOrder(cartItems, paymentMethod = 'UPI') {
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/checkout`, {
+        const response = await apiFetch('/checkout', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 cart: cartItems,
                 payment_method: paymentMethod,
@@ -305,9 +358,8 @@ async function placeOrder(cartItems, paymentMethod = 'UPI') {
 
 async function updateOrderStatusById(orderId, newStatus) {
     try {
-        const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+        const response = await apiFetch(`/orders/${orderId}/status`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
         });
         const data = await response.json();
@@ -321,7 +373,7 @@ async function updateOrderStatusById(orderId, newStatus) {
 // Statistics Functions
 async function getStats() {
     try {
-        const response = await fetch(`${API_BASE_URL}/stats`);
+        const response = await apiFetch('/stats');
         if (response.status === 401 || response.status === 403) {
             if (window.location.pathname.includes('admin.html')) {
                 localStorage.removeItem('smartCanteenCurrentUser');
@@ -339,38 +391,47 @@ async function getStats() {
         return null;
     }
 }
-// UI Helper Functions
-function showTemporaryMessage(message, type) {
-    const messageEl = document.createElement('div');
-    messageEl.className = `temp-message ${type}`;
-    messageEl.textContent = message;
-    messageEl.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        border-radius: 6px;
-        color: white;
-        z-index: 10000;
-        font-weight: 500;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: slideInRight 0.3s ease-out;
-    `;
-    if (type === 'success') {
-        messageEl.style.backgroundColor = '#28a745';
-    } else if (type === 'error') {
-        messageEl.style.backgroundColor = '#dc3545';
-    } else if (type === 'warning') {
-        messageEl.style.backgroundColor = '#ffc107';
-        messageEl.style.color = '#000';
-    } else {
-        messageEl.style.backgroundColor = '#17a2b8';
+
+// UI Notification Helpers
+function showTemporaryMessage(message, type = 'info') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
     }
-    document.body.appendChild(messageEl);
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    let iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    if (type === 'success') {
+        iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+    } else if (type === 'error') {
+        iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+    } else if (type === 'warning') {
+        iconSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+    }
+
+    toast.innerHTML = `<span style="display: flex; align-items: center; flex-shrink: 0;">${iconSvg}</span><span>${message}</span>`;
+    container.appendChild(toast);
+
     setTimeout(() => {
-        messageEl.style.animation = 'slideOutRight 0.3s ease-in';
-        setTimeout(() => messageEl.remove(), 300);
-    }, 3000);
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+function showMessage(message, type = 'info') {
+    const msgEl = document.getElementById('message');
+    if (msgEl) {
+        msgEl.className = `message ${type}`;
+        msgEl.textContent = message;
+        msgEl.classList.remove('hidden');
+        setTimeout(() => {
+            msgEl.classList.add('hidden');
+        }, 4000);
+    }
+    showTemporaryMessage(message, type);
 }
 
 function initializeMobileNav() {
@@ -434,8 +495,36 @@ document.addEventListener('DOMContentLoaded', () => {
 initializeData();
 initializeDemoAccounts();
 
-// Expose functions for pages that rely on them
+// Global exports
+window.API_BASE_URL = API_BASE_URL;
+window.apiFetch = apiFetch;
+window.getAuthHeaders = getAuthHeaders;
+window.addToCart = addToCart;
+window.addItemToCart = addItemToCart;
+window.getCart = getCart;
+window.saveCart = saveCart;
+window.clearCart = clearCart;
+window.updateItemQuantity = updateItemQuantity;
+window.removeItemFromCart = removeItemFromCart;
+window.getCurrentUser = getCurrentUser;
+window.logout = logout;
+window.registerUser = registerUser;
+window.loginUser = loginUser;
+window.getAllUsers = getAllUsers;
+window.getMenu = getMenu;
+window.getMenuItemById = getMenuItemById;
+window.addMenuItem = addMenuItem;
+window.updateMenuItem = updateMenuItem;
+window.deleteMenuItemById = deleteMenuItemById;
+window.toggleMenuItemAvailability = toggleMenuItemAvailability;
+window.getAllOrders = getAllOrders;
+window.getUserOrders = getUserOrders;
+window.placeOrder = placeOrder;
+window.updateOrderStatus = updateOrderStatusById;
+window.updateOrderStatusById = updateOrderStatusById;
+window.getStats = getStats;
 window.validateEmail = validateEmail;
 window.validatePassword = validatePassword;
-
-
+window.showMessage = showMessage;
+window.showTemporaryMessage = showTemporaryMessage;
+window.initializeMobileNav = initializeMobileNav;

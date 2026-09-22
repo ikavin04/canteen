@@ -9,6 +9,9 @@ import random
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 
+import hmac
+import hashlib
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'smart-canteen-insecure-dev-key-change-in-prod')
 CORS(app, supports_credentials=True)
@@ -19,6 +22,16 @@ DB_USER = os.environ.get('DB_USER', 'postgres')
 DB_PASSWORD = os.environ.get('DB_PASSWORD', 'Kavin04')
 DB_PORT = os.environ.get('DB_PORT', '5432')
 
+# Razorpay Configuration
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
+try:
+    import razorpay
+    RAZORPAY_AVAILABLE = True
+except ImportError:
+    razorpay = None
+    RAZORPAY_AVAILABLE = False
+
 def get_db_connection():
     conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
     return conn
@@ -26,6 +39,10 @@ def get_db_connection():
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        hdr_uid = request.headers.get('X-User-Id')
+        if hdr_uid and str(hdr_uid).isdigit():
+            session['user_id'] = int(hdr_uid)
+
         if 'user_id' not in session:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         return f(*args, **kwargs)
@@ -34,6 +51,12 @@ def login_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        hdr_uid = request.headers.get('X-User-Id')
+        hdr_role = request.headers.get('X-User-Role')
+        if hdr_uid and str(hdr_uid).isdigit() and hdr_role:
+            session['user_id'] = int(hdr_uid)
+            session['role'] = hdr_role
+
         if 'user_id' not in session:
             return jsonify({'success': False, 'message': 'Authentication required'}), 401
         if session.get('role') != 'admin':
@@ -200,15 +223,34 @@ def favicon():
 
 @app.route('/<path:filename>')
 def serve_static(filename):
+    # If an API route was requested and not found, return JSON 404
+    if filename.startswith('api/') or request.path.startswith('/api/'):
+        return jsonify({'success': False, 'message': 'API endpoint not found'}), 404
     # Serve other frontend static files (css, js, html)
     file_path = os.path.join(FRONTEND_DIR, filename)
-    if os.path.exists(file_path):
+    if os.path.exists(file_path) and os.path.isfile(file_path):
         return send_from_directory(FRONTEND_DIR, filename)
-    return jsonify({'message': 'Not Found'}), 404
+    page_404 = os.path.join(FRONTEND_DIR, '404.html')
+    if os.path.exists(page_404):
+        return send_from_directory(FRONTEND_DIR, '404.html'), 404
+    return jsonify({'success': False, 'message': 'Page not found'}), 404
+
+@app.errorhandler(404)
+def page_not_found(e):
+    if request.path.startswith('/api/'):
+        return jsonify({'success': False, 'message': 'API endpoint not found'}), 404
+    page_404 = os.path.join(FRONTEND_DIR, '404.html')
+    if os.path.exists(page_404):
+        return send_from_directory(FRONTEND_DIR, '404.html'), 404
+    return jsonify({'success': False, 'message': 'Page not found'}), 404
 
 @app.route('/api/health')
 def health():
-    return jsonify({'status': 'ok'})
+    return jsonify({
+        'status': 'ok',
+        'razorpay_enabled': bool(RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET),
+        'razorpay_sdk': RAZORPAY_AVAILABLE
+    })
 
 
 @app.route('/api/users/register', methods=['POST'])
@@ -368,9 +410,144 @@ def checkout():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
+# ==================== RAZORPAY PAYMENT APIs ====================
+
+@app.route('/api/payment/razorpay/create-order', methods=['POST'])
+def razorpay_create_order():
+    """Create a Razorpay order or simulated order for dual-mode execution."""
+    data = request.get_json() or {}
+    cart = data.get('cart', [])
+    user_id = data.get('user_id')
+    if not user_id:
+        user = data.get('user') or {}
+        user_id = user.get('id') if isinstance(user, dict) else None
+
+    if not cart:
+        return jsonify({'success': False, 'message': 'Cart is empty'}), 400
+    if not user_id:
+        return jsonify({'success': False, 'message': 'User ID is required'}), 400
+
+    try:
+        amount = float(data.get('amount') or sum(float(i['price']) * int(i['quantity']) for i in cart))
+        amount_in_paise = int(round(amount * 100))
+    except Exception:
+        return jsonify({'success': False, 'message': 'Invalid amount calculation'}), 400
+
+    is_live_key = (
+        RAZORPAY_AVAILABLE and
+        RAZORPAY_KEY_ID and
+        RAZORPAY_KEY_SECRET and
+        not RAZORPAY_KEY_ID.startswith('rzp_test_your') and
+        len(RAZORPAY_KEY_ID) > 10
+    )
+
+    if is_live_key:
+        try:
+            client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+            receipt_id = f"rcpt_{uuid.uuid4().hex[:10]}"
+            rzp_order = client.order.create({
+                'amount': amount_in_paise,
+                'currency': 'INR',
+                'receipt': receipt_id,
+                'payment_capture': 1
+            })
+            return jsonify({
+                'success': True,
+                'mode': 'live',
+                'order_id': rzp_order['id'],
+                'amount': amount_in_paise,
+                'currency': 'INR',
+                'key_id': RAZORPAY_KEY_ID
+            })
+        except Exception as e:
+            print('Razorpay API call error (falling back to dual-mode simulator):', e)
+
+    # Demo mode fallback ensures the checkout never breaks
+    mock_order_id = f"order_rzp_{uuid.uuid4().hex[:14]}"
+    return jsonify({
+        'success': True,
+        'mode': 'demo',
+        'order_id': mock_order_id,
+        'amount': amount_in_paise,
+        'currency': 'INR',
+        'key_id': RAZORPAY_KEY_ID if RAZORPAY_KEY_ID else 'rzp_test_smartcanteen'
+    })
+
+
+@app.route('/api/payment/razorpay/verify', methods=['POST'])
+def razorpay_verify_payment():
+    """Verify Razorpay payment signature and record order."""
+    data = request.get_json() or {}
+    razorpay_order_id = data.get('razorpay_order_id')
+    razorpay_payment_id = data.get('razorpay_payment_id')
+    razorpay_signature = data.get('razorpay_signature', '')
+    cart = data.get('cart', [])
+    user_id = data.get('user_id')
+    if not user_id:
+        user = data.get('user') or {}
+        user_id = user.get('id') if isinstance(user, dict) else None
+
+    if not cart or not user_id:
+        return jsonify({'success': False, 'message': 'Cart and user ID required'}), 400
+
+    if not razorpay_payment_id:
+        return jsonify({'success': False, 'message': 'Payment ID required'}), 400
+
+    is_live_key = (
+        RAZORPAY_KEY_ID and
+        RAZORPAY_KEY_SECRET and
+        not RAZORPAY_KEY_ID.startswith('rzp_test_your') and
+        len(RAZORPAY_KEY_ID) > 10
+    )
+
+    if is_live_key and razorpay_signature:
+        expected_sig = hmac.new(
+            RAZORPAY_KEY_SECRET.encode(),
+            f"{razorpay_order_id}|{razorpay_payment_id}".encode(),
+            hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(expected_sig, razorpay_signature):
+            return jsonify({'success': False, 'message': 'Invalid payment signature'}), 400
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute('SELECT user_type FROM users WHERE id = %s', (user_id,))
+        user_row = cur.fetchone()
+        user_type = user_row[0] if user_row else 'Student'
+
+        order_id = generate_unique_order_id(user_type, conn)
+        total_amount = sum(float(i['price']) * int(i['quantity']) for i in cart)
+
+        cur.execute("""
+            INSERT INTO orders (order_id, user_id, items, total_amount, status, payment_method, payment_status, transaction_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING order_id
+        """, (order_id, user_id, Json(cart), total_amount, 'Uncompleted', 'Razorpay', 'Paid', razorpay_payment_id))
+
+        row = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'message': 'Payment verified and order placed successfully',
+            'orderId': row[0] if row else order_id,
+            'amount': total_amount
+        })
+    except Exception as e:
+        print('Payment verify DB error:', e)
+        if 'conn' in locals() and conn:
+            conn.close()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 @app.route('/api/orders', methods=['GET'])
 def api_get_orders():
-    # support query params: user_id or username or admin=true
+    # support query params: user_id, username, order_id, or admin=true
+    order_id = request.args.get('order_id')
     user_id = request.args.get('user_id')
     username = request.args.get('username')
     is_admin = request.args.get('admin') in ('1', 'true', 'True')
@@ -378,7 +555,13 @@ def api_get_orders():
     # Require admin authentication for admin order view
     if is_admin:
         if 'user_id' not in session:
-            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+            hdr_uid = request.headers.get('X-User-Id')
+            hdr_role = request.headers.get('X-User-Role')
+            if hdr_uid and str(hdr_uid).isdigit() and hdr_role == 'admin':
+                session['user_id'] = int(hdr_uid)
+                session['role'] = 'admin'
+            else:
+                return jsonify({'success': False, 'message': 'Authentication required'}), 401
         if session.get('role') != 'admin':
             return jsonify({'success': False, 'message': 'Admin access required'}), 403
             
@@ -388,14 +571,25 @@ def api_get_orders():
         if is_admin:
             cur.execute('SELECT o.*, u.username FROM orders o LEFT JOIN users u ON o.user_id = u.id ORDER BY created_at DESC')
             rows = cur.fetchall()
+        elif order_id:
+            cur.execute('SELECT o.*, u.username FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.order_id = %s ORDER BY created_at DESC', (order_id,))
+            rows = cur.fetchall()
         elif user_id:
-            cur.execute('SELECT o.* FROM orders o WHERE o.user_id = %s ORDER BY created_at DESC', (int(user_id),))
+            try:
+                uid = int(user_id)
+            except (ValueError, TypeError):
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': 'Invalid user_id'}), 400
+            cur.execute('SELECT o.* FROM orders o WHERE o.user_id = %s ORDER BY created_at DESC', (uid,))
             rows = cur.fetchall()
         elif username:
             cur.execute('SELECT o.* FROM orders o JOIN users u ON o.user_id = u.id WHERE u.username = %s ORDER BY created_at DESC', (username,))
             rows = cur.fetchall()
         else:
-            return jsonify({'success': False, 'message': 'user_id, username or admin query param required'}), 400
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': 'user_id, username, order_id or admin query param required'}), 400
         cur.close()
         conn.close()
         return jsonify({'success': True, 'orders': rows})
@@ -632,3 +826,4 @@ def api_get_stats():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
+

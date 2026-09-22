@@ -3,782 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Canteen - User Dashboard</title>
+    <title>Daily Menu - Smart Canteen | KGiSL</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-container">
-            <h1 class="nav-logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <a href="index.html" class="nav-logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 2.18l7 3.82v8c0 4.52-2.98 8.69-7 9.93-4.02-1.24-7-5.41-7-9.93V8l7-3.82z"/>
-                    <path d="M8 10h3v8H8zm5 0h3v8h-3z" fill="#FF6B35"/>
+                    <path d="M8 10h3v8H8zm5 0h3v8h-3z" fill="#FF5E36"/>
                 </svg>
                 <span>Smart<br>Canteen</span>
-            </h1>
-            <button class="search-icon-btn" onclick="toggleSearch()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            </a>
+
+            <!-- Search Button -->
+            <button class="search-icon-btn" onclick="toggleSearch()" title="Search food items" id="searchToggleBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </button>
+
+            <!-- Search Dropdown Box -->
             <div class="search-container" id="searchContainer" style="display: none;">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search food..." oninput="performSearch(this.value)">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search delicacies (e.g. Burger, Tea, Pasta)..." oninput="performSearch(this.value)">
                 <div id="searchResults" class="search-results"></div>
             </div>
+
             <div class="nav-menu">
                 <button class="hamburger" id="hamburgerBtn" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle menu">
                     <span></span>
                     <span></span>
                     <span></span>
                 </button>
+
                 <div class="nav-links" id="navLinks">
-                    <a href="user_orders.html">My Orders</a>
-                    <div class="cart-icon" onclick="toggleCart()">
-                        Cart (<span id="cartCount">0</span>)
+                    <a href="user_orders.html" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span>My Orders</span>
+                    </a>
+                    
+                    <!-- Cart Trigger Pill -->
+                    <div class="cart-icon" onclick="toggleCart()" id="navCartBtn" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                        <span>Cart (<span id="cartCount">0</span>)</span>
                     </div>
+
+                    <!-- User Profile & Logout -->
                     <div class="user-info">
                         <span id="userName">User</span>
-                        <button onclick="logout()" class="btn btn-small">Logout</button>
+                        <button onclick="logout()" class="btn btn-outline btn-small">Logout</button>
                     </div>
                 </div>
             </div>
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main class="main-content">
         <div id="notification" class="notification hidden"></div>
-        
+
+        <!-- Categories Section -->
         <div class="dashboard-header">
-            <h2>Browse via Category</h2>
+            <h2>Browse by Category</h2>
         </div>
 
-        <!-- Category Browse Section -->
         <div class="category-browse">
-            <div class="category-item" onclick="filterByCategory('All')">
+            <div class="category-item active" onclick="filterByCategory('All', this)">
                 <div class="category-circle">
-                    <img src="All Categories.png" alt="All Categories">
+                    <img src="all categories.png" alt="All Categories" onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=120&auto=format&fit=crop'">
                 </div>
-                <span>All Categories</span>
+                <span>All Items</span>
             </div>
-            <div class="category-item" onclick="filterByCategory('Main Course')">
+            <div class="category-item" onclick="filterByCategory('Main Course', this)">
                 <div class="category-circle">
-                    <img src="Main Course.png" alt="Main Course">
+                    <img src="Main Course.png" alt="Main Course" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120&auto=format&fit=crop'">
                 </div>
                 <span>Main Course</span>
             </div>
-            <div class="category-item" onclick="filterByCategory('Beverages')">
+            <div class="category-item" onclick="filterByCategory('Snacks', this)">
                 <div class="category-circle">
-                    <img src="Beverages.png" alt="Beverages">
-                </div>
-                <span>Beverages</span>
-            </div>
-            <div class="category-item" onclick="filterByCategory('Snacks')">
-                <div class="category-circle">
-                    <img src="Snacks.png" alt="Snacks">
+                    <img src="Snacks.png" alt="Snacks" onerror="this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=120&auto=format&fit=crop'">
                 </div>
                 <span>Snacks</span>
             </div>
-            <div class="category-item" onclick="filterByCategory('Breakfast')">
+            <div class="category-item" onclick="filterByCategory('Beverages', this)">
                 <div class="category-circle">
-                    <img src="Breakfast.png" alt="Breakfast">
+                    <img src="Beverages.png" alt="Beverages" onerror="this.src='https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=120&auto=format&fit=crop'">
+                </div>
+                <span>Beverages</span>
+            </div>
+            <div class="category-item" onclick="filterByCategory('Breakfast', this)">
+                <div class="category-circle">
+                    <img src="Breakfast.png" alt="Breakfast" onerror="this.src='https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=120&auto=format&fit=crop'">
                 </div>
                 <span>Breakfast</span>
             </div>
-            <div class="category-item" onclick="filterByCategory('Desserts')">
+            <div class="category-item" onclick="filterByCategory('Desserts', this)">
                 <div class="category-circle">
-                    <img src="Deseserts.png" alt="Desserts">
+                    <img src="Deseserts.png" alt="Desserts" onerror="this.src='https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=120&auto=format&fit=crop'">
                 </div>
                 <span>Desserts</span>
             </div>
         </div>
 
+        <!-- Menu Section -->
         <div class="menu-section-header">
-            <h2>Today's Menu</h2>
+            <h2 id="menuSectionTitle">Today's Fresh Menu</h2>
+            <span id="menuCountBadge" style="font-weight: 700; color: var(--text-muted); font-size: 0.95rem;"></span>
         </div>
 
         <div class="menu-grid" id="menuGrid">
-            
+            <!-- Rendered dynamically -->
         </div>
-
-        
-        <div id="cartPanel" class="cart-panel">
-            <div class="cart-header">
-                <h3>Your Cart</h3>
-                <button class="close-cart" onclick="toggleCart()">×</button>
-            </div>
-            <div class="cart-items" id="cartItems">
-                
-            </div>
-            <div class="cart-footer">
-                <div class="cart-total">
-                    Total: ₹<span id="cartTotal">0.00</span>
-                </div>
-                <button id="checkoutBtn" onclick="proceedToPayment()" class="btn btn-primary">
-                    Proceed to Payment
-                </button>
-            </div>
-        </div>
-
-        
-        <div id="cartOverlay" class="cart-overlay" onclick="toggleCart()"></div>
     </main>
 
-    <!-- Profile Modal -->
-    <div id="profileModal" class="profile-modal">
-        <div class="profile-modal-overlay" onclick="closeProfileModal()"></div>
-        <div class="profile-modal-content">
-            <button class="profile-close-btn" onclick="closeProfileModal()">&times;</button>
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    <svg width="80" height="80" viewBox="0 0 24 24" fill="#FF6B35">
-                        <circle cx="12" cy="8" r="4"></circle>
-                        <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"></path>
-                    </svg>
-                </div>
-                <h2 id="profileUsername" class="profile-username">User</h2>
-                <div id="profileRole" class="profile-role-badge">Student</div>
-            </div>
-            <div class="profile-details">
-                <div class="profile-detail-item">
-                    <div class="profile-detail-label">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
-                        </svg>
-                        <span>Email</span>
-                    </div>
-                    <div id="profileEmail" class="profile-detail-value">user@example.com</div>
-                </div>
-                <div class="profile-detail-item">
-                    <div class="profile-detail-label">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                        <span>Role</span>
-                    </div>
-                    <div id="profileRoleText" class="profile-detail-value">Student</div>
-                </div>
-            </div>
-            <div class="profile-actions">
-                <button onclick="logout()" class="btn btn-logout">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Logout
-                </button>
-            </div>
+    <!-- Slide-out Cart Drawer -->
+    <div class="cart-panel-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-panel" id="cartPanel">
+        <div class="cart-header">
+            <h3 style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <span>Your Order</span>
+            </h3>
+            <button class="close-cart" onclick="toggleCart()">&times;</button>
         </div>
-    </div>
-
-    <!-- Bottom Navigation for Mobile/Tablet -->
-    <nav class="bottom-nav">
-        <a href="user_dashboard.html" class="bottom-nav-item active">
-            <div class="bottom-nav-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-            </div>
-            <span class="bottom-nav-label">Menu</span>
-        </a>
-        <div class="bottom-nav-item" onclick="toggleCart()">
-            <div class="bottom-nav-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
-            </div>
-            <span class="bottom-nav-label">Cart (<span id="bottomCartCount">0</span>)</span>
+        <div class="cart-items" id="cartItems">
+            <!-- Rendered dynamically -->
         </div>
-        <a href="user_orders.html" class="bottom-nav-item">
-            <div class="bottom-nav-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
+        <div class="cart-footer">
+            <div class="cart-total-row">
+                <span>Subtotal:</span>
+                <span class="cart-total-amount">₹<span id="cartTotal">0.00</span></span>
             </div>
-            <span class="bottom-nav-label">Orders</span>
-        </a>
-        <div class="bottom-nav-item" onclick="openProfileModal()">
-            <div class="bottom-nav-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="8" r="4"></circle>
-                    <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"></path>
-                </svg>
-            </div>
-            <span class="bottom-nav-label">Profile</span>
-        </div>
-    </nav>
-
-    <!-- Cart Summary Bar -->
-    <div class="cart-summary-bar" id="cartSummaryBar" style="display: none;">
-        <div class="cart-summary-content">
-            <span class="cart-summary-text">
-                <span id="cartSummaryCount">0</span> food items added to cart
-            </span>
-            <button class="view-cart-btn" onclick="toggleCart()">
-                View Cart
+            <button id="checkoutBtn" onclick="proceedToPayment()" class="btn btn-primary btn-large" style="width: 100%;">
+                Proceed to Checkout &rarr;
             </button>
         </div>
     </div>
 
+    <!-- Quantity Selection Modal -->
+    <div class="modal-overlay" id="quantityModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalItemName">Select Quantity</h3>
+                <button class="close-cart" onclick="closeQuantityModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img id="modalItemImage" src="" alt="Food" style="width: 120px; height: 120px; border-radius: 16px; object-fit: cover; margin: 0 auto 16px;">
+                <p id="modalItemPrice" style="font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 20px;"></p>
+
+                <div style="display: inline-flex; align-items: center; gap: 16px; background: var(--bg-main); padding: 8px 18px; border-radius: var(--radius-full); border: 1.5px solid var(--border-color);">
+                    <button class="quantity-btn" onclick="adjustModalQuantity(-1)" style="width: 36px; height: 36px; font-size: 1.2rem;">-</button>
+                    <span id="modalQuantity" style="font-size: 1.3rem; font-weight: 800; min-width: 30px;">1</span>
+                    <button class="quantity-btn" onclick="adjustModalQuantity(1)" style="width: 36px; height: 36px; font-size: 1.2rem;">+</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeQuantityModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmAddToCart()">Add to Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 Smart Canteen &bull; KGiSL Institute of Technology</p>
+        </div>
+    </footer>
+
     <script src="app.js"></script>
     <script>
-        // Initialize currentQuantities object
-        let currentQuantities = {};
-        
-        // Check authentication
+        let allMenuItems = [];
+        let selectedCategory = 'All';
+        let currentModalItem = null;
+        let currentModalQty = 1;
+
+        // Ensure user is logged in
         const currentUser = getCurrentUser();
         if (!currentUser) {
             window.location.href = 'login.html';
         } else if (currentUser.role === 'admin') {
             window.location.href = 'admin.html';
         }
-        
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('userName').textContent = currentUser.username;
-            // sync quantities from cart so menu quantity controls reflect the cart
-            if (typeof syncCurrentQuantitiesFromCart === 'function') syncCurrentQuantitiesFromCart();
-            loadMenu();
-            loadCategories();
-            loadMenuItemQuantities();
-            updateCartUI();
-            startNotificationPolling();
 
-            // Wire up hamburger toggle (no inline onclick to avoid double toggles)
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            if (hamburgerBtn) {
-                hamburgerBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleMobileMenu();
-                });
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.username;
             }
-
-            // Close on Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closeMobileMenu();
-                }
-            });
+            initializeMobileNav();
+            updateCartBadge();
+            await loadMenu();
         });
-        
+
         async function loadMenu() {
-            const menu = await getMenu();
-            const menuGrid = document.getElementById('menuGrid');
-            const categoryFilter = window.currentCategoryFilter || '';
-            
-            let filteredMenu = menu.filter(item => item.availability);
-            if (categoryFilter) {
-                filteredMenu = filteredMenu.filter(item => item.category === categoryFilter);
-            }
-            
-            menuGrid.innerHTML = filteredMenu.map(item => {
-                // Use category image as fallback
-                const categoryImages = {
-                    'Main Course': 'Main Course.png',
-                    'Beverages': 'Beverages.png',
-                    'Snacks': 'Snacks.png',
-                    'Breakfast': 'Breakfast.png',
-                    'Desserts': 'Deseserts.png'
-                };
-                const fallbackImage = categoryImages[item.category] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em" font-family="Arial" font-size="14"%3ENo Image%3C/text%3E%3C/svg%3E';
-                
-                return `
-                <div class="menu-item" data-item-id="${item.id}">
-                    <img src="${item.image_url || fallbackImage}" alt="${item.item_name}" class="menu-item-image">
-                    <div class="menu-item-content">
-                        <h3>${item.item_name}</h3>
-                        <p class="menu-item-description">${item.description || ''}</p>
-                        <span class="price">₹${parseFloat(item.price).toFixed(0)}</span>
-                    </div>
-                    <div class="menu-item-cart-controls">
-                        <button class="add-to-cart-btn" onclick="addItemToCartFromMenu(${item.id}, event)">
-                            Add to Cart
-                        </button>
-                        <div class="menu-quantity-controls" style="display: none;">
-                            <button onclick="decreaseQuantity(${item.id}, event)">-</button>
-                            <span class="quantity-display">1</span>
-                            <button onclick="increaseQuantity(${item.id}, event)">+</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            }).join('');
-            
-        }
-        
-        async function loadCategories() {
-            const menu = await getMenu();
-            const categories = [...new Set(menu.map(item => item.category))];
-        }
-        
-        function filterByCategory(category) {
-            // Clear filter if 'All' is selected
-            if (category === 'All') {
-                window.currentCategoryFilter = '';
-            } else {
-                window.currentCategoryFilter = category;
-            }
-            loadMenu();
-        }
-        
-        // Show add to cart modal with quantity controls
-        async function showAddToCartModal(itemId) {
-            const menuItem = await getMenuItemById(itemId);
-            if (!menuItem) return;
-            
-            const quantity = currentQuantities[itemId] || 1;
-            
-            const modalHTML = `
-                <div class="cart-modal-overlay" onclick="closeAddToCartModal()">
-                    <div class="cart-modal" onclick="event.stopPropagation()">
-                        <button class="modal-close" onclick="closeAddToCartModal()">×</button>
-                        <img src="${menuItem.image_url || 'https://via.placeholder.com/200'}" alt="${menuItem.item_name}" class="modal-image">
-                        <h3>${menuItem.item_name}</h3>
-                        <p class="modal-description">${menuItem.description || ''}</p>
-                        <div class="modal-price">₹${parseFloat(menuItem.price).toFixed(0)}</div>
-                        <div class="modal-quantity-controls">
-                            <button onclick="changeModalQuantity(${itemId}, -1)">-</button>
-                            <span id="modal-qty-${itemId}">${quantity}</span>
-                            <button onclick="changeModalQuantity(${itemId}, 1)">+</button>
-                        </div>
-                        <button onclick="addToCartFromModal(${itemId})" class="btn btn-primary modal-add-btn">Add to Cart</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
-        
-        function closeAddToCartModal() {
-            const modal = document.querySelector('.cart-modal-overlay');
-            if (modal) modal.remove();
-        }
-        
-        function changeModalQuantity(itemId, change) {
-            if (!currentQuantities[itemId]) {
-                currentQuantities[itemId] = 1;
-            }
-            currentQuantities[itemId] = Math.max(1, currentQuantities[itemId] + change);
-            const qtyEl = document.getElementById(`modal-qty-${itemId}`);
-            if (qtyEl) qtyEl.textContent = currentQuantities[itemId];
-        }
-        
-        async function addToCartFromModal(itemId) {
-            const quantity = currentQuantities[itemId] || 1;
-            const result = await addItemToCart(itemId, quantity);
-            
-            if (result.success) {
-                showNotification(`Added ${quantity} item(s) to cart`, 'success');
-                updateCartUI();
-                closeAddToCartModal();
-            } else {
-                showNotification(result.message || 'Failed to add item', 'error');
-            }
-        }
-        
-        // Search functionality
-        let allMenuItems = [];
-        
-        function toggleSearch() {
-            const searchContainer = document.getElementById('searchContainer');
-            const searchInput = document.getElementById('searchInput');
-            
-            if (searchContainer.style.display === 'none') {
-                searchContainer.style.display = 'block';
-                searchInput.focus();
-            } else {
-                searchContainer.style.display = 'none';
-                searchInput.value = '';
-                document.getElementById('searchResults').innerHTML = '';
-            }
-        }
-        
-        async function performSearch(query) {
-            const searchResults = document.getElementById('searchResults');
-            
-            if (!query.trim()) {
-                searchResults.innerHTML = '';
-                return;
-            }
-            
-            if (allMenuItems.length === 0) {
+            try {
                 allMenuItems = await getMenu();
+                renderMenu();
+            } catch (err) {
+                console.error('Error loading menu:', err);
+                document.getElementById('menuGrid').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                        <p style="color: var(--text-muted); font-size: 1.1rem;">Unable to load menu. Please try refreshing.</p>
+                    </div>
+                `;
             }
-            
-            const filteredItems = allMenuItems.filter(item => 
-                item.availability && 
-                (item.item_name.toLowerCase().includes(query.toLowerCase()) ||
-                 item.category.toLowerCase().includes(query.toLowerCase()) ||
-                 (item.description && item.description.toLowerCase().includes(query.toLowerCase())))
-            );
-            
-            if (filteredItems.length === 0) {
-                searchResults.innerHTML = '<div class="search-no-results">No items found</div>';
+        }
+
+        function filterByCategory(category, el) {
+            selectedCategory = category;
+            if (el) {
+                document.querySelectorAll('.category-item').forEach(c => c.classList.remove('active'));
+                el.classList.add('active');
+            }
+            document.getElementById('menuSectionTitle').textContent = category === 'All' ? "Today's Fresh Menu" : `${category} Specials`;
+            renderMenu();
+        }
+
+        function renderMenu() {
+            const grid = document.getElementById('menuGrid');
+            const items = selectedCategory === 'All' 
+                ? allMenuItems 
+                : allMenuItems.filter(item => item.category.toLowerCase() === selectedCategory.toLowerCase());
+
+            document.getElementById('menuCountBadge').textContent = `${items.length} items available`;
+
+            if (items.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed var(--border-color);">
+                        <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: #FFF5F2; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                        </div>
+                        <h3 style="color: var(--secondary); margin-bottom: 6px;">No items found in this category</h3>
+                        <p style="color: var(--text-muted);">Please check back later or browse other categories!</p>
+                    </div>
+                `;
                 return;
             }
-            
-            const categoryImages = {
-                'All Categories': 'All Categories.png',
-                'Main Course': 'Main Course.png',
-                'Beverages': 'Beverages.png',
-                'Snacks': 'Snacks.png',
-                'Breakfast': 'Breakfast.png',
-                'Desserts': 'Deseserts.png'
+
+            const fallbackImages = {
+                'Main Course': 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop',
+                'Snacks': 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&auto=format&fit=crop',
+                'Beverages': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop',
+                'Breakfast': 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400&auto=format&fit=crop',
+                'Desserts': 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&auto=format&fit=crop'
             };
-            
-            searchResults.innerHTML = filteredItems.slice(0, 5).map(item => {
-                const imgSrc = item.image_url || categoryImages[item.category] || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="60" height="60"%3E%3Crect fill="%23f0f0f0" width="60" height="60"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-family="Arial" font-size="12"%3ENo Image%3C/text%3E%3C/svg%3E';
+
+            grid.innerHTML = items.map(item => {
+                const imgUrl = item.image_url || fallbackImages[item.category] || fallbackImages['Main Course'];
+                const isAvailable = item.availability !== false;
+
                 return `
-                    <div class="search-result-item" onclick="selectSearchItem(${item.id}); toggleSearch();">
-                        <img src="${imgSrc}" alt="${item.item_name}" class="search-item-image">
-                        <div class="search-item-content">
-                            <div class="search-item-name">${item.item_name}</div>
-                            <div class="search-item-category">${item.category}</div>
-                            <div class="search-item-price">₹${parseFloat(item.price).toFixed(0)}</div>
+                    <div class="menu-item-card">
+                        <div class="menu-item-image-wrapper">
+                            <img src="${imgUrl}" alt="${item.item_name}" class="menu-item-image" onerror="this.src='${fallbackImages['Main Course']}'">
+                            <span class="menu-item-category-tag">${item.category}</span>
+                            <span class="menu-item-badge ${isAvailable ? 'available' : 'unavailable'}">
+                                ${isAvailable ? '● Available' : '○ Sold Out'}
+                            </span>
+                        </div>
+                        <div class="menu-item-body">
+                            <h3 class="menu-item-title">${item.item_name}</h3>
+                            <p class="menu-item-desc">${item.description || 'Prepared fresh daily in the campus kitchen with premium ingredients.'}</p>
+                            <div class="menu-item-footer">
+                                <span class="menu-item-price">₹${parseFloat(item.price).toFixed(2)}</span>
+                                <button class="btn btn-primary btn-small" 
+                                    ${!isAvailable ? 'disabled' : ''} 
+                                    onclick="openQuantityModal(${item.id})">
+                                    + Add
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
-        
-        function selectSearchItem(itemId) {
-            showAddToCartModal(itemId);
-        }
-        
-        // Close search when clicking outside
-        document.addEventListener('click', function(e) {
-            const searchContainer = document.getElementById('searchContainer');
-            const searchBtn = document.querySelector('.search-icon-btn');
-            
-            if (searchContainer && searchBtn && 
-                !searchContainer.contains(e.target) && 
-                !searchBtn.contains(e.target)) {
-                searchContainer.style.display = 'none';
-                document.getElementById('searchInput').value = '';
-                document.getElementById('searchResults').innerHTML = '';
-            }
-        });
-        
-        // Menu item cart controls
-        const menuItemQuantities = {};
-        
-        async function addItemToCartFromMenu(itemId, event) {
-            event.stopPropagation();
-            
-            const result = await addItemToCart(itemId, 1);
-            
-            if (result && result.success) {
-                menuItemQuantities[itemId] = 1;
-                updateMenuItemDisplay(itemId);
-                updateCartSummaryBar();
-                updateCartUI();
-                showNotification('Added to cart', 'success');
+
+        // Search Handlers
+        function toggleSearch() {
+            const container = document.getElementById('searchContainer');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                document.getElementById('searchInput').focus();
             } else {
-                showNotification(result?.message || 'Failed to add item', 'error');
+                container.style.display = 'none';
             }
         }
-        
-        async function increaseQuantity(itemId, event) {
-            event.stopPropagation();
-            
-            const currentQty = menuItemQuantities[itemId] || 0;
-            const result = await addItemToCart(itemId, 1);
-            
-            if (result && result.success) {
-                menuItemQuantities[itemId] = currentQty + 1;
-                updateMenuItemDisplay(itemId);
-                updateCartSummaryBar();
-                updateCartUI();
-            }
-        }
-        
-        async function decreaseQuantity(itemId, event) {
-            event.stopPropagation();
-            
-            const currentQty = menuItemQuantities[itemId] || 0;
-            if (currentQty <= 1) {
-                // Remove item completely
-                removeItemFromCart(itemId);
-                delete menuItemQuantities[itemId];
-                updateMenuItemDisplay(itemId);
-                updateCartSummaryBar();
-                updateCartUI();
-            } else {
-                const result = await addItemToCart(itemId, -1);
-                if (result && result.success) {
-                    menuItemQuantities[itemId] = currentQty - 1;
-                    updateMenuItemDisplay(itemId);
-                    updateCartSummaryBar();
-                    updateCartUI();
-                }
-            }
-        }
-        
-        function updateMenuItemDisplay(itemId) {
-            const menuItem = document.querySelector(`.menu-item[data-item-id="${itemId}"]`);
-            if (!menuItem) return;
-            
-            const addBtn = menuItem.querySelector('.add-to-cart-btn');
-            const quantityControls = menuItem.querySelector('.menu-quantity-controls');
-            const quantityDisplay = menuItem.querySelector('.quantity-display');
-            
-            const quantity = menuItemQuantities[itemId] || 0;
-            
-            if (quantity > 0) {
-                addBtn.style.display = 'none';
-                quantityControls.style.display = 'flex';
-                quantityDisplay.textContent = quantity;
-            } else {
-                addBtn.style.display = 'block';
-                quantityControls.style.display = 'none';
-            }
-        }
-        
-        async function updateCartSummaryBar() {
-            const cart = await getCart();
-            const cartSummaryBar = document.getElementById('cartSummaryBar');
-            const cartSummaryCount = document.getElementById('cartSummaryCount');
-            
-            let totalItems = 0;
-            if (cart && cart.items) {
-                totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-            }
-            
-            if (totalItems > 0) {
-                cartSummaryBar.style.display = 'block';
-                cartSummaryCount.textContent = totalItems;
-            } else {
-                cartSummaryBar.style.display = 'none';
-            }
-        }
-        
-        // Load menu item quantities from cart on page load
-        async function loadMenuItemQuantities() {
-            const cart = await getCart();
-            if (cart && cart.items) {
-                cart.items.forEach(item => {
-                    menuItemQuantities[item.item_id] = item.quantity;
-                    updateMenuItemDisplay(item.item_id);
-                });
-                updateCartSummaryBar();
-            }
-        }
-        
-        // Use shared currentQuantities synced from cart
-        // syncCurrentQuantitiesFromCart() (from app.js) will populate `currentQuantities`
-        function changeQuantity(itemId, change) {
-            if (!currentQuantities[itemId]) {
-                currentQuantities[itemId] = 1;
+
+        function performSearch(query) {
+            const resultsContainer = document.getElementById('searchResults');
+            const q = query.trim().toLowerCase();
+            if (!q) {
+                resultsContainer.innerHTML = '';
+                return;
             }
 
-            currentQuantities[itemId] = Math.max(1, currentQuantities[itemId] + change);
-            const qtyEl = document.getElementById(`qty-${itemId}`);
-            if (qtyEl) qtyEl.textContent = currentQuantities[itemId];
+            const matches = allMenuItems.filter(item => 
+                item.item_name.toLowerCase().includes(q) || 
+                item.category.toLowerCase().includes(q)
+            );
+
+            if (matches.length === 0) {
+                resultsContainer.innerHTML = `<div style="padding: 16px; text-align: center; color: var(--text-muted);">No dishes match "${query}"</div>`;
+                return;
+            }
+
+            resultsContainer.innerHTML = matches.map(item => `
+                <div class="search-result-item" onclick="openQuantityModal(${item.id}); toggleSearch();">
+                    <img src="${item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'}" class="search-item-image" alt="${item.item_name}">
+                    <div class="search-item-content">
+                        <div class="search-item-name">${item.item_name}</div>
+                        <div class="search-item-category">${item.category}</div>
+                    </div>
+                    <div class="search-item-price">₹${parseFloat(item.price).toFixed(2)}</div>
+                </div>
+            `).join('');
         }
-        
-        async function addToCart(itemId) {
-            const quantity = currentQuantities[itemId] || 1;
-            const result = await addItemToCart(itemId, quantity);
-            
-            if (result.success) {
-                showNotification(`Added ${quantity} item(s) to cart`, 'success');
-                updateCartUI();
-                // reset displayed quantity to 1 for next quick add
-                currentQuantities[itemId] = 1;
-                const qtyEl = document.getElementById(`qty-${itemId}`);
-                if (qtyEl) qtyEl.textContent = '1';
-            } else {
-                showNotification(result.message, 'error');
+
+        // Cart Drawer Handlers
+        function toggleCart() {
+            const panel = document.getElementById('cartPanel');
+            const overlay = document.getElementById('cartOverlay');
+            panel.classList.toggle('active');
+            overlay.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                renderCartDrawer();
             }
         }
-        
-        function updateCartUI() {
+
+        function updateCartBadge() {
             const cart = getCart();
-            const cartCount = document.getElementById('cartCount');
-            const cartItems = document.getElementById('cartItems');
-            const cartTotal = document.getElementById('cartTotal');
+            const totalQty = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+            document.getElementById('cartCount').textContent = totalQty;
+        }
+
+        function renderCartDrawer() {
+            const cart = getCart();
+            const cartItemsEl = document.getElementById('cartItems');
+            const totalEl = document.getElementById('cartTotal');
             const checkoutBtn = document.getElementById('checkoutBtn');
-            
-            // Update cart count
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.textContent = totalItems;
-            
-            // Update bottom navigation cart count
-            const bottomCartCount = document.getElementById('bottomCartCount');
-            if (bottomCartCount) {
-                bottomCartCount.textContent = totalItems;
-            }
-            
-            // Update cart items
+
             if (cart.length === 0) {
-                cartItems.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+                cartItemsEl.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+                        <div style="width: 72px; height: 72px; margin: 0 auto 16px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                        </div>
+                        <h4 style="color: var(--secondary); margin-bottom: 6px;">Your Cart is Empty</h4>
+                        <p style="font-size: 0.9rem;">Add some mouth-watering items from the menu to start!</p>
+                    </div>
+                `;
+                totalEl.textContent = '0.00';
                 checkoutBtn.disabled = true;
-            } else {
-                cartItems.innerHTML = cart.map(item => `
+                return;
+            }
+
+            checkoutBtn.disabled = false;
+            let total = 0;
+
+            cartItemsEl.innerHTML = cart.map(item => {
+                const itemTotal = parseFloat(item.price) * item.quantity;
+                total += itemTotal;
+                return `
                     <div class="cart-item">
                         <div class="cart-item-info">
-                            <h4>${item.name}</h4>
-                            <div class="cart-item-price">₹${parseFloat(item.price).toFixed(2)} × ${item.quantity}</div>
+                            <div class="cart-item-title">${item.name}</div>
+                            <div class="cart-item-price">₹${parseFloat(item.price).toFixed(2)} each</div>
                         </div>
-                        <div class="cart-item-actions">
-                            <button onclick="updateCartQuantity(${item.id}, -1)" class="btn btn-small">-</button>
-                            <span>${item.quantity}</span>
-                            <button onclick="updateCartQuantity(${item.id}, 1)" class="btn btn-small">+</button>
-                            <button onclick="removeFromCart(${item.id})" class="btn btn-small btn-danger">Remove</button>
+                        <div class="cart-item-controls">
+                            <button class="quantity-btn" onclick="changeCartQty(${item.id}, -1)">-</button>
+                            <span class="cart-item-quantity">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="changeCartQty(${item.id}, 1)">+</button>
                         </div>
                     </div>
-                `).join('');
-                checkoutBtn.disabled = false;
-            }
-            
-            // Update total
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            cartTotal.textContent = total.toFixed(2);
+                `;
+            }).join('');
+
+            totalEl.textContent = total.toFixed(2);
+            updateCartBadge();
         }
-        
-        function updateCartQuantity(itemId, change) {
-            const result = updateItemQuantity(itemId, change);
-            if (result.success) {
-                updateCartUI();
-                loadMenu(); // Refresh to update quantity displays
-            }
+
+        function changeCartQty(id, delta) {
+            updateItemQuantity(id, delta);
+            renderCartDrawer();
         }
-        
-        function removeFromCart(itemId) {
-            const result = removeItemFromCart(itemId);
-            if (result.success) {
-                showNotification('Item removed from cart', 'info');
-                updateCartUI();
-                loadMenu(); // Refresh to update quantity displays
-            }
-        }
-        
-        function toggleCart() {
-            const cartPanel = document.getElementById('cartPanel');
-            const cartOverlay = document.getElementById('cartOverlay');
-            
-            cartPanel.classList.toggle('active');
-            cartOverlay.classList.toggle('active');
-        }
-        
+
         function proceedToPayment() {
             const cart = getCart();
             if (cart.length === 0) {
-                showNotification('Your cart is empty', 'error');
+                showMessage('Please add items to your cart before proceeding', 'error');
                 return;
             }
-            
             window.location.href = 'payment.html';
         }
-        
-        function toggleMobileMenu() {
-            const navLinks = document.getElementById('navLinks');
-            const hamburger = document.getElementById('hamburgerBtn');
-            const willOpen = !navLinks.classList.contains('active');
-            navLinks.classList.toggle('active');
-            hamburger.classList.toggle('active');
-            if (hamburger) hamburger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+
+        // Modal Handlers
+        function openQuantityModal(itemId) {
+            const item = allMenuItems.find(i => i.id === itemId);
+            if (!item) return;
+            currentModalItem = item;
+            currentModalQty = 1;
+
+            document.getElementById('modalItemName').textContent = item.item_name;
+            document.getElementById('modalItemImage').src = item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200';
+            document.getElementById('modalItemPrice').textContent = `₹${parseFloat(item.price).toFixed(2)}`;
+            document.getElementById('modalQuantity').textContent = currentModalQty;
+
+            document.getElementById('quantityModal').classList.add('active');
         }
 
-        function closeMobileMenu() {
-            const navLinks = document.getElementById('navLinks');
-            const hamburger = document.getElementById('hamburgerBtn');
-            if (navLinks && navLinks.classList.contains('active')) {
-                navLinks.classList.remove('active');
-                if (hamburger) {
-                    hamburger.classList.remove('active');
-                    hamburger.setAttribute('aria-expanded', 'false');
-                }
-            }
+        function closeQuantityModal() {
+            document.getElementById('quantityModal').classList.remove('active');
+            currentModalItem = null;
         }
-        
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const navLinks = document.getElementById('navLinks');
-            const hamburger = document.getElementById('hamburgerBtn');
-            const isClickInsideMenu = navLinks.contains(event.target);
-            const isClickOnHamburger = hamburger.contains(event.target);
-            if (!isClickInsideMenu && !isClickOnHamburger) {
-                closeMobileMenu();
-            }
-        });
-        
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.remove('hidden');
-            
-            setTimeout(() => {
-                notification.classList.add('hidden');
-            }, 3000);
+
+        function adjustModalQuantity(delta) {
+            currentModalQty = Math.max(1, Math.min(10, currentModalQty + delta));
+            document.getElementById('modalQuantity').textContent = currentModalQty;
         }
-        
-        function openProfileModal() {
-            const currentUser = getCurrentUser();
-            if (!currentUser) return;
-            
-            // Extract username from email (part before @)
-            const username = currentUser.email ? currentUser.email.split('@')[0] : currentUser.username;
-            
-            // Update modal content
-            document.getElementById('profileUsername').textContent = username;
-            document.getElementById('profileEmail').textContent = currentUser.email || currentUser.username;
-            document.getElementById('profileRole').textContent = currentUser.user_type || currentUser.role || 'Student';
-            document.getElementById('profileRoleText').textContent = currentUser.user_type || currentUser.role || 'Student';
-            
-            // Show modal
-            document.getElementById('profileModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function closeProfileModal() {
-            document.getElementById('profileModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-        
-        // Close profile modal on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeProfileModal();
-            }
-        });
-        
-        function startNotificationPolling() {
-            // Check for order status updates every 30 seconds
-            setInterval(() => {
-                checkOrderUpdates();
-            }, 30000);
-        }
-        
-        async function checkOrderUpdates() {
-            const orders = await getUserOrders();
-            const lastCheck = localStorage.getItem('lastNotificationCheck') 
-                ? new Date(localStorage.getItem('lastNotificationCheck'))
-                : new Date(Date.now() - 24*60*60*1000); // 24 hours ago
-            
-            const recentUpdates = orders.filter(order => {
-                const orderTime = new Date(order.created_at || order.timestamp);
-                return orderTime > lastCheck && (order.status === 'Ready' || order.status === 'Completed');
-            });
-            
-            recentUpdates.forEach(order => {
-                if (order.status === 'Ready') {
-                    showNotification(`Order ${order.order_id} is ready for pickup!`, 'success');
-                } else if (order.status === 'Completed') {
-                    showNotification(`Order ${order.order_id} has been completed`, 'info');
-                }
-            });
-            
-            localStorage.setItem('lastNotificationCheck', new Date().toISOString());
+
+        function confirmAddToCart() {
+            if (!currentModalItem) return;
+            addToCart(currentModalItem, currentModalQty);
+            updateCartBadge();
+            closeQuantityModal();
+            showMessage(`Added ${currentModalQty}x ${currentModalItem.item_name} to cart!`, 'success');
         }
     </script>
 </body>

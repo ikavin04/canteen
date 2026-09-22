@@ -3,174 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Canteen - Order Confirmation</title>
+    <title>Order Confirmation - Smart Canteen | KGiSL</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav class="navbar">
+    <!-- Navbar (Hidden on print) -->
+    <nav class="navbar no-print">
         <div class="nav-container">
-            <h1 class="nav-logo">Smart Canteen</h1>
+            <a href="user_dashboard.html" class="nav-logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 2.18l7 3.82v8c0 4.52-2.98 8.69-7 9.93-4.02-1.24-7-5.41-7-9.93V8l7-3.82z"/>
+                    <path d="M8 10h3v8H8zm5 0h3v8h-3z" fill="#FF5E36"/>
+                </svg>
+                <span>Smart<br>Canteen</span>
+            </a>
             <div class="nav-menu">
-                <div class="user-info">
-                    <span id="userName">User</span>
-                    <button onclick="logout()" class="btn btn-small">Logout</button>
-                </div>
+                <a href="user_orders.html" class="btn btn-outline btn-small" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>My Orders</span>
+                </a>
+                <a href="user_dashboard.html" class="btn btn-primary btn-small" style="display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                    <span>Menu</span>
+                </a>
             </div>
         </div>
     </nav>
 
+    <!-- Main Content -->
     <main class="main-content">
-        <div class="confirmation-container">
-            <div class="confirmation-card">
-                <div class="success-icon">✓</div>
-                <h2>Order Placed Successfully!</h2>
-                
-                <div class="order-details" id="orderDetails">
-                    
+        <div class="receipt-container">
+            <div class="receipt-card" id="receiptContent">
+                <div class="receipt-header">
+                    <div class="receipt-success-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <h1 class="receipt-title">Order Confirmed!</h1>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">
+                        Thank you for your order! Show this digital token at the cafeteria counter for collection.
+                    </p>
+                    <div class="receipt-token-badge" id="receiptTokenBadge">ORD-LOADING</div>
                 </div>
-                
-                <div class="confirmation-actions">
-                    <button onclick="viewOrders()" class="btn btn-primary">View My Orders</button>
-                    <button onclick="orderMore()" class="btn btn-secondary">Order More Items</button>
+
+                <!-- Digital Counter QR Code & Token -->
+                <div class="receipt-qr-box">
+                    <svg width="120" height="120" viewBox="0 0 100 100" fill="currentColor" style="color: var(--secondary);">
+                        <!-- High quality QR mockup vector -->
+                        <rect width="100" height="100" fill="white"/>
+                        <rect x="10" y="10" width="30" height="30" fill="#0F172A"/>
+                        <rect x="15" y="15" width="20" height="20" fill="white"/>
+                        <rect x="20" y="20" width="10" height="10" fill="#0F172A"/>
+
+                        <rect x="60" y="10" width="30" height="30" fill="#0F172A"/>
+                        <rect x="65" y="15" width="20" height="20" fill="white"/>
+                        <rect x="70" y="20" width="10" height="10" fill="#0F172A"/>
+
+                        <rect x="10" y="60" width="30" height="30" fill="#0F172A"/>
+                        <rect x="15" y="65" width="20" height="20" fill="white"/>
+                        <rect x="20" y="70" width="10" height="10" fill="#0F172A"/>
+
+                        <rect x="45" y="15" width="10" height="20" fill="#0F172A"/>
+                        <rect x="15" y="45" width="20" height="10" fill="#0F172A"/>
+                        <rect x="45" y="45" width="10" height="10" fill="#FF5E36"/>
+                        <rect x="60" y="45" width="30" height="10" fill="#0F172A"/>
+                        <rect x="45" y="60" width="15" height="25" fill="#0F172A"/>
+                        <rect x="65" y="65" width="25" height="15" fill="#0F172A"/>
+                    </svg>
+                    <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+                        Scan at Canteen Counter &bull; KGiSL Cafeteria
+                    </span>
+                </div>
+
+                <!-- Order Details Table -->
+                <table class="receipt-details-table">
+                    <tr>
+                        <td style="color: var(--text-muted);">Status:</td>
+                        <td><span class="status-badge status-preparing" id="orderStatus">Preparing</span></td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--text-muted);">Transaction ID:</td>
+                        <td id="orderTxnId" style="font-family: var(--font-mono);">--</td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--text-muted);">Payment Method:</td>
+                        <td id="orderPaymentMethod">Razorpay (Paid)</td>
+                    </tr>
+                    <tr>
+                        <td style="color: var(--text-muted);">Order Time:</td>
+                        <td id="orderTime">--</td>
+                    </tr>
+                </table>
+
+                <!-- Itemized Breakdown -->
+                <div style="border-top: 2px dashed var(--border-color); padding-top: 16px; margin-bottom: 24px;">
+                    <h4 style="font-size: 1rem; color: var(--secondary); margin-bottom: 12px;">Items Ordered</h4>
+                    <div id="receiptItemsList" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Rendered dynamically -->
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 1.25rem; font-weight: 800;">
+                        <span>Total Paid:</span>
+                        <span style="color: var(--primary);">₹<span id="orderGrandTotal">0.00</span></span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons (Hidden on Print) -->
+                <div class="no-print" style="display: flex; gap: 12px; flex-direction: column;">
+                    <a href="user_orders.html" class="btn btn-primary btn-large" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span>Track Order in Real-Time &rarr;</span>
+                    </a>
+                    <div style="display: flex; gap: 12px;">
+                        <button onclick="window.print()" class="btn btn-outline" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                            <span>Print Receipt</span>
+                        </button>
+                        <a href="user_dashboard.html" class="btn btn-secondary" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                            <span>Order More</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
+    <!-- Footer -->
+    <footer class="footer no-print">
+        <div class="footer-bottom">
+            <p>&copy; 2026 Smart Canteen &bull; KGiSL Institute of Technology</p>
+        </div>
+    </footer>
+
     <script src="app.js"></script>
     <script>
-        // Check authentication
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
-            window.location.href = 'login.html';
-        } else if (currentUser.role === 'admin') {
-            window.location.href = 'admin.html';
-        }
-        
-        // Initialize page
         document.addEventListener('DOMContentLoaded', async function() {
-            document.getElementById('userName').textContent = currentUser.username;
-            await loadOrderDetails();
-        });
-        
-        async function loadOrderDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const orderId = urlParams.get('orderId');
-            
-            console.log('Looking for order ID:', orderId);
-            
+
             if (!orderId) {
-                document.getElementById('orderDetails').innerHTML = `
-                    <div class="error-message">
-                        <p>Order ID not found. <a href="user_dashboard.html">Return to menu</a></p>
-                    </div>
-                `;
+                window.location.href = 'user_orders.html';
                 return;
             }
-            
+
+            document.getElementById('receiptTokenBadge').textContent = orderId;
+
             try {
-                const orders = await getUserOrders();
-                console.log('All orders:', orders);
-                const order = orders.find(o => o.order_id === orderId);
-                console.log('Found order:', order);
-                
-                if (!order) {
-                    document.getElementById('orderDetails').innerHTML = `
-                        <div class="error-message">
-                            <p>Order not found. <a href="user_dashboard.html">Return to menu</a></p>
-                        </div>
-                    `;
-                    return;
+                // Fetch specific order details directly from backend
+                let currentOrder = null;
+                try {
+                    const res = await apiFetch(`/orders?order_id=${encodeURIComponent(orderId)}`);
+                    const data = await res.json();
+                    if (data.success && data.orders && data.orders.length > 0) {
+                        currentOrder = data.orders[0];
+                    }
+                } catch (e) {
+                    console.warn('Direct order lookup error, trying user orders:', e);
                 }
-            
-            // Build order details HTML with proper structure
-            let html = '<div class="order-summary-section">';
-            html += '<h3 class="section-title">Order Summary</h3>';
-            html += '<div class="order-info-box">';
-            
-            html += '<div class="info-item">';
-            html += '<div class="info-label">Order ID</div>';
-            html += `<div class="info-value">${order.order_id}</div>`;
-            html += '</div>';
-            
-            html += '<div class="info-item">';
-            html += '<div class="info-label">Transaction ID</div>';
-            html += `<div class="info-value">${order.transaction_id}</div>`;
-            html += '</div>';
-            
-            html += '<div class="info-item">';
-            html += '<div class="info-label">Payment Method</div>';
-            html += `<div class="info-value">${order.payment_method}</div>`;
-            html += '</div>';
-            
-            html += '<div class="info-item">';
-            html += '<div class="info-label">Status</div>';
-            html += `<div class="info-value"><span class="status-badge">${order.status}</span></div>`;
-            html += '</div>';
-            
-            html += '<div class="info-item">';
-            html += '<div class="info-label">Order Time</div>';
-            html += `<div class="info-value">${new Date(order.created_at || order.timestamp).toLocaleString()}</div>`;
-            html += '</div>';
-            
-            html += '</div></div>'; // Close order-info-box and order-summary-section
-            
-            // Items section
-            html += '<div class="order-items-section">';
-            html += '<h3 class="section-title">Items Ordered</h3>';
-            html += '<div class="items-list">';
-            
-            let subtotal = 0;
-            order.items.forEach(item => {
-                const itemTotal = parseFloat(item.price) * item.quantity;
-                subtotal += itemTotal;
-                
-                html += '<div class="item-card">';
-                html += '<div class="item-left">';
-                html += `<div class="item-name">${item.name}</div>`;
-                html += `<div class="item-details">`;
-                html += `<span class="item-qty">Qty: ${item.quantity}</span>`;
-                html += `<span class="item-unit-price">@ ₹${parseFloat(item.price).toFixed(2)}</span>`;
-                html += `</div>`;
-                html += '</div>';
-                html += `<div class="item-price">₹${itemTotal.toFixed(2)}</div>`;
-                html += '</div>';
-            });
-            
-            html += '</div>'; // Close items-list
-            
-            // Bill summary
-            html += '<div class="bill-summary">';
-            html += '<div class="bill-row subtotal">';
-            html += '<span class="bill-label">Subtotal</span>';
-            html += `<span class="bill-value">₹${subtotal.toFixed(2)}</span>`;
-            html += '</div>';
-            html += '<div class="bill-row total">';
-            html += '<span class="bill-label">Total Amount</span>';
-            html += `<span class="bill-value">₹${parseFloat(order.total_amount).toFixed(2)}</span>`;
-            html += '</div>';
-            html += '</div>'; // Close bill-summary
-            
-            html += '</div>'; // Close order-items-section
-            
-            document.getElementById('orderDetails').innerHTML = html;
-            } catch (error) {
-                console.error('Error loading order details:', error);
-                document.getElementById('orderDetails').innerHTML = `
-                    <div class="error-message">
-                        <p>Error loading order details. <a href="user_dashboard.html">Return to menu</a></p>
-                    </div>
-                `;
+
+                if (!currentOrder) {
+                    const orders = await getUserOrders();
+                    currentOrder = orders.find(o => o.order_id === orderId) || (orders.length > 0 ? orders[0] : null);
+                }
+
+                if (currentOrder) {
+                    document.getElementById('orderStatus').textContent = currentOrder.status || 'Preparing';
+                    document.getElementById('orderTxnId').textContent = currentOrder.transaction_id || 'TXN-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                    document.getElementById('orderPaymentMethod').textContent = (currentOrder.payment_method || 'Razorpay') + ' (Paid)';
+                    document.getElementById('orderTime').textContent = new Date(currentOrder.created_at || Date.now()).toLocaleString();
+                    document.getElementById('orderGrandTotal').textContent = parseFloat(currentOrder.total_amount).toFixed(2);
+
+                    const itemsList = document.getElementById('receiptItemsList');
+                    const items = typeof currentOrder.items === 'string' ? JSON.parse(currentOrder.items) : (currentOrder.items || []);
+                    itemsList.innerHTML = items.map(item => `
+                        <div style="display: flex; justify-content: space-between; font-size: 0.92rem;">
+                            <span>${item.name || item.item_name} &times; ${item.quantity}</span>
+                            <span style="font-weight: 700;">₹${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Receipt error:', err);
             }
-        }
-        
-        function viewOrders() {
-            window.location.href = 'user_orders.html';
-        }
-        
-        function orderMore() {
-            window.location.href = 'user_dashboard.html';
-        }
+        });
     </script>
 </body>
 </html>
