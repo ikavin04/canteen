@@ -227,6 +227,7 @@ function getCart() {
 
 function saveCart(cart) {
     localStorage.setItem('smartCanteenCart', JSON.stringify(cart));
+    updateAllCartBadges();
 }
 
 function addToCart(item, quantity = 1) {
@@ -434,27 +435,96 @@ function showMessage(message, type = 'info') {
     showTemporaryMessage(message, type);
 }
 
+function updateAllCartBadges() {
+    try {
+        const cart = (typeof getCart === 'function') ? getCart() : [];
+        const totalQty = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        const badgeElements = document.querySelectorAll('#cartCount, #mobileCartCount, #drawerCartCount, .cart-badge');
+        badgeElements.forEach(el => {
+            el.textContent = totalQty;
+        });
+    } catch (e) {
+        console.error('Error updating cart badges:', e);
+    }
+}
+
 function initializeMobileNav() {
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    if (hamburger && navLinks) {
-        hamburger.addEventListener('click', () => {
-            hamburger.classList.toggle('active');
-            navLinks.classList.toggle('active');
-        });
-        document.addEventListener('click', (e) => {
-            if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            }
-        });
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                hamburger.classList.remove('active');
-                navLinks.classList.remove('active');
-            });
-        });
+    if (!hamburger || !navLinks) return;
+
+    // Ensure backdrop element exists
+    let backdrop = document.querySelector('.nav-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'nav-backdrop';
+        backdrop.id = 'navBackdrop';
+        document.body.appendChild(backdrop);
     }
+
+    function openMobileNav() {
+        hamburger.classList.add('active');
+        hamburger.setAttribute('aria-expanded', 'true');
+        navLinks.classList.add('active');
+        backdrop.classList.add('active');
+        document.body.classList.add('nav-open');
+    }
+
+    function closeMobileNav() {
+        hamburger.classList.remove('active');
+        hamburger.setAttribute('aria-expanded', 'false');
+        navLinks.classList.remove('active');
+        backdrop.classList.remove('active');
+        document.body.classList.remove('nav-open');
+    }
+
+    function toggleMobileNav(e) {
+        if (e) e.stopPropagation();
+        if (navLinks.classList.contains('active')) {
+            closeMobileNav();
+        } else {
+            openMobileNav();
+        }
+    }
+
+    // Remove existing event listener duplicates if re-initialized
+    hamburger.onclick = toggleMobileNav;
+    backdrop.onclick = closeMobileNav;
+
+    // Close button inside drawer
+    const closeBtn = navLinks.querySelector('.drawer-close-btn, .nav-close-btn');
+    if (closeBtn) {
+        closeBtn.onclick = closeMobileNav;
+    }
+
+    // Close drawer when clicking any link
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.onclick = () => {
+            closeMobileNav();
+        };
+    });
+
+    // Close on Escape key press
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+            closeMobileNav();
+        }
+    });
+
+    // Wire up user details in drawer if present
+    const currentUser = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+    if (currentUser) {
+        const drawerName = navLinks.querySelector('#drawerUserName');
+        if (drawerName) drawerName.textContent = currentUser.username || 'User';
+        const drawerRole = navLinks.querySelector('#drawerUserRole');
+        if (drawerRole) drawerRole.textContent = currentUser.role || 'Student';
+        const drawerAvatar = navLinks.querySelector('#drawerUserAvatar');
+        if (drawerAvatar && currentUser.username) {
+            drawerAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+    }
+
+    updateAllCartBadges();
 }
 
 function initializeTouchControls() {
@@ -490,6 +560,7 @@ function validatePassword(password) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeMobileNav();
     initializeTouchControls();
+    updateAllCartBadges();
 });
 
 initializeData();
@@ -528,3 +599,4 @@ window.validatePassword = validatePassword;
 window.showMessage = showMessage;
 window.showTemporaryMessage = showTemporaryMessage;
 window.initializeMobileNav = initializeMobileNav;
+window.updateAllCartBadges = updateAllCartBadges;
