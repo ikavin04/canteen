@@ -3,3 +3,4 @@ psycopg2-binary==2.9.7
 Flask-Cors==3.0.10
 python-dotenv==1.0.0
 gunicorn==21.2.0
+pytest==7.4.2

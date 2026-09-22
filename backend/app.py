@@ -1,16 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 import os
 import psycopg2
-from psycopg2.extras import RealDictCursor
-from flask import send_from_directory
+from psycopg2.extras import RealDictCursor, Json
 import json
 import uuid
 import random
-from psycopg2.extras import Json
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-CORS(app)
+app.secret_key = os.environ.get('SECRET_KEY', 'smart-canteen-insecure-dev-key-change-in-prod')
+CORS(app, supports_credentials=True)
 
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_NAME = os.environ.get('DB_NAME', 'canteen')
@@ -21,6 +22,24 @@ DB_PORT = os.environ.get('DB_PORT', '5432')
 def get_db_connection():
     conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
     return conn
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+        if session.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Admin access required'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
 
 def generate_unique_order_id(user_type, conn):
     """Generate a unique order ID based on user type with format ORD-{PREFIX}{6-digit-number}"""
@@ -55,19 +74,14 @@ def generate_unique_order_id(user_type, conn):
 
 
 def init_db():
-    """Create users, menu_items, and orders tables if they don't exist."""
+    """Create users, menu_items, and orders tables if they don't exist, and seed demo accounts."""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Drop existing tables to recreate with correct schema
-        cur.execute("DROP TABLE IF EXISTS orders CASCADE")
-        cur.execute("DROP TABLE IF EXISTS menu_items CASCADE")
-        cur.execute("DROP TABLE IF EXISTS users CASCADE")
-        
         # Create users table
         cur.execute("""
-            CREATE TABLE users (
+            CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
@@ -80,7 +94,7 @@ def init_db():
         
         # Create menu_items table
         cur.execute("""
-            CREATE TABLE menu_items (
+            CREATE TABLE IF NOT EXISTS menu_items (
                 id SERIAL PRIMARY KEY,
                 item_name TEXT NOT NULL,
                 price NUMERIC(10, 2) NOT NULL,
@@ -95,7 +109,7 @@ def init_db():
         
         # Create orders table
         cur.execute("""
-        CREATE TABLE orders (
+        CREATE TABLE IF NOT EXISTS orders (
             id SERIAL PRIMARY KEY,
             order_id TEXT UNIQUE NOT NULL,
             user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -110,18 +124,26 @@ def init_db():
         )
         """)
         
-        # Insert demo users if they don't exist
+        # Insert demo users with hashed passwords
+        admin_hash = generate_password_hash('admin123')
+        user_hash = generate_password_hash('user123')
         cur.execute("""
         INSERT INTO users (username, email, password, role) 
-        VALUES ('admin', 'admin@canteen.com', 'admin123', 'admin')
-        ON CONFLICT (username) DO NOTHING
-        """)
+        VALUES ('admin', 'admin@canteen.com', %s, 'admin')
+        ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password
+        """, (admin_hash,))
         
         cur.execute("""
         INSERT INTO users (username, email, password, role) 
-        VALUES ('user', 'user@canteen.com', 'user123', 'user')
-        ON CONFLICT (username) DO NOTHING
-        """)
+        VALUES ('user', 'user@canteen.com', %s, 'user')
+        ON CONFLICT (username) DO UPDATE SET password = EXCLUDED.password
+        """, (user_hash,))
+        
+        # One-time migration: re-hash any existing plain-text passwords
+        cur.execute("SELECT id, password FROM users")
+        for u_id, u_pw in cur.fetchall():
+            if not (u_pw.startswith('scrypt:') or u_pw.startswith('pbkdf2:') or u_pw.startswith('argon2:')):
+                cur.execute("UPDATE users SET password = %s WHERE id = %s", (generate_password_hash(u_pw), u_id))
         
         # Insert demo menu items if table is empty
         cur.execute("SELECT COUNT(*) FROM menu_items")
@@ -201,7 +223,8 @@ def api_register():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute('INSERT INTO users (username, email, password, user_type) VALUES (%s,%s,%s,%s) RETURNING id, username, email, role, user_type', (username, email, password, user_type))
+        hashed_password = generate_password_hash(password)
+        cur.execute('INSERT INTO users (username, email, password, user_type) VALUES (%s,%s,%s,%s) RETURNING id, username, email, role, user_type', (username, email, hashed_password, user_type))
         row = cur.fetchone()
         conn.commit()
         cur.close()
@@ -221,17 +244,38 @@ def api_login():
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute('SELECT id, username, email, role, user_type FROM users WHERE username=%s AND password=%s', (username, password))
+        cur.execute('SELECT id, username, email, password, role, user_type FROM users WHERE username=%s', (username,))
         user = cur.fetchone()
         cur.close()
         conn.close()
-        if not user:
+        if not user or not check_password_hash(user['password'], password):
             return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
-        return jsonify({'success': True, 'user': user})
+        
+        # Store user in session
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['role'] = user['role']
+        
+        user_data = {
+            'id': user['id'],
+            'username': user['username'],
+            'email': user['email'],
+            'role': user['role'],
+            'user_type': user['user_type']
+        }
+        return jsonify({'success': True, 'user': user_data})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+
+@app.route('/api/users/logout', methods=['POST'])
+def api_logout():
+    session.clear()
+    return jsonify({'success': True, 'message': 'Logged out successfully'})
+
+
 @app.route('/api/users', methods=['GET'])
+@admin_required
 def api_get_users():
     try:
         conn = get_db_connection()
@@ -266,18 +310,42 @@ def checkout():
     for item in cart:
         if not all(k in item for k in ('id', 'name', 'price', 'quantity')):
             return jsonify({'success': False, 'message': 'Invalid cart item format'}), 400
-    try:
-        total_amount = sum(float(i['price']) * int(i['quantity']) for i in cart)
-    except Exception:
-        return jsonify({'success': False, 'message': 'Invalid price/quantity in cart'}), 400
+        try:
+            qty = int(item['quantity'])
+            price = float(item['price'])
+            if qty <= 0:
+                return jsonify({'success': False, 'message': 'Item quantity must be greater than 0'}), 400
+            if price < 0:
+                return jsonify({'success': False, 'message': 'Item price cannot be negative'}), 400
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': 'Invalid price or quantity in cart'}), 400
 
-    # Get user type for order ID generation
+    # Validate item existence in database
     try:
         conn = get_db_connection()
         cur = conn.cursor()
+        item_ids = [int(item['id']) for item in cart if str(item.get('id')).isdigit()]
+        if len(item_ids) != len(cart):
+            cur.close()
+            conn.close()
+            return jsonify({'success': False, 'message': 'Invalid item ID format'}), 400
+        
+        cur.execute("SELECT id FROM menu_items WHERE id = ANY(%s)", (item_ids,))
+        found_ids = {row[0] for row in cur.fetchall()}
+        for i_id in item_ids:
+            if i_id not in found_ids:
+                cur.close()
+                conn.close()
+                return jsonify({'success': False, 'message': f'Item ID {i_id} does not exist'}), 400
+        
+        total_amount = sum(float(i['price']) * int(i['quantity']) for i in cart)
+        
+        # Get user type for order ID generation
         cur.execute('SELECT user_type FROM users WHERE id = %s', (user_id,))
         user_row = cur.fetchone()
         if not user_row:
+            cur.close()
+            conn.close()
             return jsonify({'success': False, 'message': 'User not found'}), 404
         user_type = user_row[0]
         
@@ -295,11 +363,9 @@ def checkout():
         return jsonify({'success': True, 'message': 'Payment processed', 'orderId': row[0] if row else order_id, 'amount': total_amount})
     except Exception as e:
         print('DB error:', e)
-        if 'conn' in locals():
+        if 'conn' in locals() and conn:
             conn.close()
-        # fallback: return demo response with fallback order ID
-        fallback_order_id = 'ORD-GUE' + str(random.randint(100000, 999999))
-        return jsonify({'success': True, 'message': 'Payment processed (demo)', 'orderId': fallback_order_id, 'amount': total_amount})
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @app.route('/api/orders', methods=['GET'])
@@ -308,6 +374,14 @@ def api_get_orders():
     user_id = request.args.get('user_id')
     username = request.args.get('username')
     is_admin = request.args.get('admin') in ('1', 'true', 'True')
+    
+    # Require admin authentication for admin order view
+    if is_admin:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'Authentication required'}), 401
+        if session.get('role') != 'admin':
+            return jsonify({'success': False, 'message': 'Admin access required'}), 403
+            
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -330,6 +404,7 @@ def api_get_orders():
 
 
 @app.route('/api/orders/<order_id>/status', methods=['PATCH'])
+@admin_required
 def api_update_order_status(order_id):
     data = request.get_json() or {}
     new_status = data.get('status')
@@ -372,6 +447,7 @@ def api_get_menu():
 
 
 @app.route('/api/menu', methods=['POST'])
+@admin_required
 def api_add_menu_item():
     """Add a new menu item (Admin only)"""
     data = request.get_json() or {}
@@ -420,6 +496,7 @@ def api_get_menu_item(item_id):
 
 
 @app.route('/api/menu/<int:item_id>', methods=['PUT'])
+@admin_required
 def api_update_menu_item(item_id):
     """Update a menu item (Admin only)"""
     data = request.get_json() or {}
@@ -472,6 +549,7 @@ def api_update_menu_item(item_id):
 
 
 @app.route('/api/menu/<int:item_id>', methods=['DELETE'])
+@admin_required
 def api_delete_menu_item(item_id):
     """Delete a menu item (Admin only)"""
     try:
@@ -493,6 +571,7 @@ def api_delete_menu_item(item_id):
 # ==================== STATS APIs ====================
 
 @app.route('/api/stats', methods=['GET'])
+@admin_required
 def api_get_stats():
     """Get statistics for admin dashboard"""
     try:

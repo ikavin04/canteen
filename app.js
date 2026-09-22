@@ -58,6 +58,13 @@ async function loginUser(username, password) {
 async function getAllUsers() {
     try {
         const response = await fetch(`${API_BASE_URL}/users`);
+        if (response.status === 401 || response.status === 403) {
+            if (window.location.pathname.includes('admin.html')) {
+                localStorage.removeItem('smartCanteenCurrentUser');
+                window.location.href = 'login.html';
+            }
+            return [];
+        }
         const data = await response.json();
         if (data.success && Array.isArray(data.users)) {
             return data.users;
@@ -232,6 +239,13 @@ function clearCart() {
 async function getAllOrders() {
     try {
         const response = await fetch(`${API_BASE_URL}/orders?admin=true`);
+        if (response.status === 401 || response.status === 403) {
+            if (window.location.pathname.includes('admin.html')) {
+                localStorage.removeItem('smartCanteenCurrentUser');
+                window.location.href = 'login.html';
+            }
+            return [];
+        }
         const data = await response.json();
         if (data.success && Array.isArray(data.orders)) {
             return data.orders;
@@ -308,6 +322,13 @@ async function updateOrderStatusById(orderId, newStatus) {
 async function getStats() {
     try {
         const response = await fetch(`${API_BASE_URL}/stats`);
+        if (response.status === 401 || response.status === 403) {
+            if (window.location.pathname.includes('admin.html')) {
+                localStorage.removeItem('smartCanteenCurrentUser');
+                window.location.href = 'login.html';
+            }
+            return null;
+        }
         const data = await response.json();
         if (data.success) {
             return data.stats;

@@ -203,17 +203,33 @@
 
     <script src="app.js"></script>
     <script>
-        // Check authentication
+        function handleAuthError(response) {
+            if (response && (response.status === 401 || response.status === 403)) {
+                localStorage.removeItem('smartCanteenCurrentUser');
+                window.location.href = 'login.html';
+                return true;
+            }
+            return false;
+        }
+
+        // Check client-side authentication
         const currentUser = getCurrentUser();
         if (!currentUser) {
             window.location.href = 'login.html';
         } else if (currentUser.role !== 'admin') {
             window.location.href = 'user_dashboard.html';
         }
+
+        // Verify admin session with backend on load
+        fetch('/api/stats').then(res => {
+            if (handleAuthError(res)) return;
+        }).catch(err => console.error('Auth check error:', err));
         
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('adminName').textContent = `Welcome, ${currentUser.username}`;
+            if (currentUser) {
+                document.getElementById('adminName').textContent = `Welcome, ${currentUser.username}`;
+            }
             loadDashboardStats();
             loadMenuItems();
             loadOrders();
@@ -437,6 +453,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: newStatus })
                 });
+                if (handleAuthError(response)) return;
                 const result = await response.json();
                 if (result.success) {
                     showNotification(`Order ${orderId} status updated to ${newStatus}`, 'success');
