@@ -247,11 +247,9 @@ lsof -ti:5000 | xargs kill -9
 - Activate virtual environment
 - Run: `pip install -r requirements.txt`
 
-## 🎨 Font
+## 🎨 Typography
 
-This project uses a custom font named Aleoverasans. To apply the font:
-1. Place `Aleoverasans.woff2` file in `fonts/` folder
-2. The site will fall back to system fonts if not available
+This project uses Google Fonts (`Plus Jakarta Sans`) with standard modern system font fallbacks.
 
 ## 📄 License
 
