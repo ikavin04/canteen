@@ -167,17 +167,19 @@ def test_out_of_range(client):
 
 def test_razorpay_create_order_simulator(client):
     """Test 5: Creating Razorpay order without live keys falls back to simulator."""
-    res = client.post('/api/payment/razorpay/create-order', json={
-        'user_id': 1,
-        'cart': [{'id': 1, 'name': 'Dosa', 'price': 40.0, 'quantity': 2}],
-        'amount': 80.0
-    })
-    assert res.status_code == 200
-    data = res.get_json()
-    assert data['success'] is True
-    assert data['mode'] == 'demo'
-    assert data['amount'] == 8000  # 80 INR in paise
-    assert data['order_id'].startswith('order_rzp_')
+    with patch.object(app_module, 'RAZORPAY_KEY_ID', ''), \
+         patch.object(app_module, 'RAZORPAY_KEY_SECRET', ''):
+        res = client.post('/api/payment/razorpay/create-order', json={
+            'user_id': 1,
+            'cart': [{'id': 1, 'name': 'Dosa', 'price': 40.0, 'quantity': 2}],
+            'amount': 80.0
+        })
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data['success'] is True
+        assert data['mode'] == 'demo'
+        assert data['amount'] == 8000  # 80 INR in paise
+        assert data['order_id'].startswith('order_rzp_')
 
 
 def test_razorpay_create_order_live(client):
@@ -228,7 +230,9 @@ def test_razorpay_verify_payment_simulator(client):
     mock_conn.cursor.return_value = mock_cur
     mock_cur.fetchone.side_effect = [('Student',), (0,), ('ORD-STU998877',)]
 
-    with patch('app.get_db_connection', return_value=mock_conn):
+    with patch('app.get_db_connection', return_value=mock_conn), \
+         patch.object(app_module, 'RAZORPAY_KEY_ID', ''), \
+         patch.object(app_module, 'RAZORPAY_KEY_SECRET', ''):
         res = client.post('/api/payment/razorpay/verify', json={
             'user_id': 1,
             'razorpay_order_id': 'order_rzp_test123',

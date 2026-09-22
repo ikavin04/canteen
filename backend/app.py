@@ -11,6 +11,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import hmac
 import hashlib
+from dotenv import load_dotenv
+
+# Load environment variables from backend/.env if present
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'smart-canteen-insecure-dev-key-change-in-prod')
