@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout & Payment - Smart Canteen | KGiSL</title>
+    <title>Checkout & Payment - Smart Canteen</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Razorpay Standard Checkout SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -121,7 +121,7 @@
                 <button class="close-cart" onclick="closeSimulator()" style="color: white;">&times;</button>
             </div>
             <div class="modal-body" style="text-align: center; padding: 28px 24px;">
-                <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 8px;">Paying to Smart Canteen (KGiSL)</p>
+                <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 8px;">Paying to Smart Canteen</p>
                 <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 20px;">
                     ₹<span id="simAmount">0.00</span>
                 </div>
@@ -151,7 +151,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-bottom">
-            <p>&copy; 2026 Smart Canteen &bull; KGiSL Institute of Technology</p>
+            <p>&copy; 2026 Smart Canteen. All rights reserved.</p>
         </div>
     </footer>
 
@@ -300,12 +300,12 @@
                     key: data.key_id,
                     amount: data.amount,
                     currency: data.currency || 'INR',
-                    name: 'Smart Canteen (KGiSL)',
+                    name: 'Smart Canteen',
                     description: `Payment for ${cart.length} delicacies`,
                     order_id: data.order_id,
                     prefill: {
                         name: currentUser.username,
-                        email: currentUser.email || 'student@kgisl.edu'
+                        email: currentUser.email || 'student@canteen.com'
                     },
                     theme: {
                         color: '#FF5E36'

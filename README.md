@@ -267,7 +267,7 @@ This project is for educational purposes.
 
 ## 👨‍💻 Author
 
-Smart Canteen - KGiSL Institute of Technology
+Smart Canteen - Digital Dining Solution
 
 ## 📞 Support
 

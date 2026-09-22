@@ -1,7 +1,7 @@
 # Smart Canteen - Complete System Logic Documentation
 
 ## System Overview
-Smart Canteen is a comprehensive digital canteen management system for KGiSL Institute with complete order flow from registration to food collection.
+Smart Canteen is a comprehensive digital canteen management system with complete order flow from registration to food collection.
 
 ---
 
@@ -472,7 +472,7 @@ Auto-created on backend startup:
 
 2. **Register** (if new user)
    - Username: "john_doe"
-   - Email: "john@kgisl.edu"
+   - Email: "john@canteen.com"
    - User Type: "Student" ✨
    - Password: "Pass@123"
 
