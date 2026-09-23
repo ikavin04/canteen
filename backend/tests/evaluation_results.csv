@@ -1,0 +1,51 @@
+attempt,order_id,items_count,total_qty,cart_total,card_number,card_type,gateway_status,db_payment_status,status_match,accuracy_match,time_sec,notes
+1,ORD-STU370163,2,5,140.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7865,Order verified and stored
+2,ORD-STU712161,3,6,250.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.8789,Order verified and stored
+3,ORD-STU284605,1,2,80.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7942,Order verified and stored
+4,ORD-STU352363,2,4,350.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,1.9223,Order verified and stored
+5,ORD-STU184049,3,7,505.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7249,Order verified and stored
+6,ORD-STU463325,2,6,660.0,4012000000000003,Visa Insufficient Funds,Failed,Failed,Y,Y,0.8735,Insufficient funds in account
+7,ORD-STU282527,3,5,310.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.823,Order verified and stored
+8,ORD-STU965145,1,3,150.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,1.2504,Order verified and stored
+9,ORD-STU963820,1,2,120.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,1.3064,Order verified and stored
+10,ORD-STU124587,1,1,120.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.789,Order verified and stored
+11,ORD-STU435012,3,8,540.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7411,Order verified and stored
+12,ORD-STU572000,2,5,200.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.7453,Order verified and stored
+13,ORD-STU709400,1,1,40.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7464,Order verified and stored
+14,ORD-STU581687,3,7,480.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.816,Order verified and stored
+15,ORD-STU967254,3,6,290.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.8806,Order verified and stored
+16,ORD-STU553885,2,4,205.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,1.0185,Order verified and stored
+17,ORD-STU507541,3,8,235.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.6381,Order verified and stored
+18,ORD-STU240158,1,1,150.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.92,Order verified and stored
+19,ORD-STU245789,3,5,330.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,1.0956,Order verified and stored
+20,ORD-STU483259,1,3,150.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7439,Order verified and stored
+21,ORD-STU837314,1,1,60.0,4012000000000003,Visa Insufficient Funds,Failed,Failed,Y,Y,0.6768,Insufficient funds in account
+22,ORD-STU578880,1,3,180.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7121,Order verified and stored
+23,ORD-STU377003,2,4,320.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.5691,Order verified and stored
+24,ORD-STU641507,3,8,710.0,4012000000000005,Visa Incorrect CVV,Failed,Failed,Y,Y,0.7603,Card authentication failed / Invalid CVV
+25,ORD-STU410794,3,4,200.0,4012000000000004,Visa Card Expired,Failed,Failed,Y,Y,0.6599,Card has expired
+26,ORD-STU107430,3,5,310.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7742,Order verified and stored
+27,ORD-STU881849,1,1,40.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.7938,Order verified and stored
+28,ORD-STU327688,1,1,20.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.6993,Order verified and stored
+29,ORD-STU529541,3,9,405.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.7499,Order verified and stored
+30,ORD-STU157481,1,2,120.0,4012000000000004,Visa Card Expired,Failed,Failed,Y,Y,0.6234,Card has expired
+31,ORD-STU120066,1,3,120.0,4012000000000003,Visa Insufficient Funds,Failed,Failed,Y,Y,0.8023,Insufficient funds in account
+32,ORD-STU827064,2,5,440.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.5782,Order verified and stored
+33,ORD-STU537249,3,6,280.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.8278,Order verified and stored
+34,ORD-STU674017,1,3,150.0,4012000000000003,Visa Insufficient Funds,Failed,Failed,Y,Y,0.6944,Insufficient funds in account
+35,ORD-STU959992,1,1,100.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.5938,Order verified and stored
+36,ORD-STU897817,2,5,220.0,4012000000000004,Visa Card Expired,Failed,Failed,Y,Y,0.7599,Card has expired
+37,ORD-STU119126,1,1,20.0,4012000000000003,Visa Insufficient Funds,Failed,Failed,Y,Y,0.6929,Insufficient funds in account
+38,ORD-STU235346,1,2,50.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.8801,Order verified and stored
+39,ORD-STU828668,2,2,150.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.8658,Order verified and stored
+40,ORD-STU788422,1,2,200.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.9378,Order verified and stored
+41,ORD-STU438730,2,6,360.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.9346,Order verified and stored
+42,ORD-STU794025,1,2,100.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.5976,Order verified and stored
+43,ORD-STU674010,1,3,240.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.6694,Order verified and stored
+44,ORD-STU762097,3,8,570.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.5882,Order verified and stored
+45,ORD-STU669047,1,1,20.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.5989,Order verified and stored
+46,ORD-STU496540,1,1,80.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.6383,Order verified and stored
+47,ORD-STU179648,2,6,270.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.8357,Order verified and stored
+48,ORD-STU338398,3,6,630.0,4012000000000002,Visa Success,Paid,Paid,Y,Y,0.8574,Order verified and stored
+49,ORD-STU455608,1,2,240.0,4111111111111111,Visa Standard Success,Paid,Paid,Y,Y,0.7864,Order verified and stored
+50,ORD-STU529370,3,4,480.0,4012000000000003,Visa Insufficient Funds,Failed,Failed,Y,Y,0.5788,Insufficient funds in account

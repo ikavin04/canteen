@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'smart-canteen-insecure-dev-key-change-in-prod')
+app.secret_key = os.environ['SECRET_KEY']
 CORS(app, supports_credentials=True)
 
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
@@ -36,9 +36,15 @@ except ImportError:
     razorpay = None
     RAZORPAY_AVAILABLE = False
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
 def get_db_connection():
-    conn = psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
-    return conn
+    if DATABASE_URL:
+        db_url = DATABASE_URL
+        if db_url.startswith('postgres://'):
+            db_url = db_url.replace('postgres://', 'postgresql://', 1)
+        return psycopg2.connect(db_url)
+    return psycopg2.connect(host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT)
 
 def login_required(f):
     @wraps(f)
@@ -493,6 +499,36 @@ def razorpay_verify_payment():
 
     if not cart or not user_id:
         return jsonify({'success': False, 'message': 'Cart and user ID required'}), 400
+
+    # Record payment failure when reported by gateway
+    if data.get('payment_status') in ('Failed', 'failed') or data.get('status') == 'failed':
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute('SELECT user_type FROM users WHERE id = %s', (user_id,))
+            user_row = cur.fetchone()
+            user_type = user_row[0] if user_row else 'Student'
+            order_id = generate_unique_order_id(user_type, conn)
+            total_amount = sum(float(i['price']) * int(i['quantity']) for i in cart)
+            cur.execute("""
+                INSERT INTO orders (order_id, user_id, items, total_amount, status, payment_method, payment_status, transaction_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING order_id
+            """, (order_id, user_id, Json(cart), total_amount, 'Cancelled', 'Razorpay', 'Failed', razorpay_payment_id or 'TXN_FAILED'))
+            row = cur.fetchone()
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({
+                'success': False,
+                'message': data.get('error_message') or 'Payment failed at gateway',
+                'orderId': row[0] if row else order_id,
+                'payment_status': 'Failed'
+            }), 200
+        except Exception as e:
+            if 'conn' in locals() and conn:
+                conn.close()
+            return jsonify({'success': False, 'message': str(e)}), 500
 
     if not razorpay_payment_id:
         return jsonify({'success': False, 'message': 'Payment ID required'}), 400

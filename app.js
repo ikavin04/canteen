@@ -1,10 +1,12 @@
 // Smart Canteen - Frontend API & State Client
 // Configuration: dynamically adapt to same-origin or localhost:5000
-const API_BASE_URL = (typeof window !== 'undefined' && (window.location.port === '5000' || !window.location.port && window.location.protocol.startsWith('http')))
-    ? '/api'
-    : (typeof window !== 'undefined' && window.location.hostname)
-        ? `${window.location.protocol}//${window.location.hostname}:5000/api`
-        : 'http://localhost:5000/api';
+const API_BASE_URL = (typeof window !== 'undefined' && window.BACKEND_URL)
+    ? window.BACKEND_URL.replace(/\/+$/, '') + '/api'
+    : (typeof window !== 'undefined' && (window.location.port === '5000' || !window.location.port && window.location.protocol.startsWith('http')))
+        ? '/api'
+        : (typeof window !== 'undefined' && window.location.hostname)
+            ? `${window.location.protocol}//${window.location.hostname}:5000/api`
+            : 'http://localhost:5000/api';
 
 // Authentication & Request Helper
 function getAuthHeaders() {
