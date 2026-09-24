@@ -292,6 +292,34 @@ function clearCart() {
     localStorage.setItem('smartCanteenCart', JSON.stringify([]));
 }
 
+// Chef AI RAG Recommendation Engine Client
+async function getRagRecommendations(cartOrItem = null) {
+    try {
+        let body = {};
+        if (Array.isArray(cartOrItem)) {
+            body.cart = cartOrItem;
+        } else if (cartOrItem && typeof cartOrItem === 'object') {
+            body.item = cartOrItem;
+            body.cart = getCart();
+        } else {
+            body.cart = getCart();
+        }
+
+        const response = await apiFetch('/recommendations', {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        if (data.success && Array.isArray(data.recommendations)) {
+            return data.recommendations;
+        }
+        return [];
+    } catch (error) {
+        console.warn('RAG recommendations fetch error:', error);
+        return [];
+    }
+}
+
 // Order Management Functions
 async function getAllOrders() {
     try {

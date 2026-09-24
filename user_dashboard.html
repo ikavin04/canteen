@@ -204,6 +204,16 @@
         <div class="cart-items" id="cartItems">
             <!-- Rendered dynamically -->
         </div>
+
+        <!-- Chef AI RAG Smart Pairings in Cart -->
+        <div id="cartRagContainer" class="cart-rag-section" style="display: none;">
+            <div class="cart-rag-header">
+                <h4>Chef AI Smart Pairings</h4>
+                <span class="cart-rag-badge">RAG AI</span>
+            </div>
+            <div id="cartRagCards"></div>
+        </div>
+
         <div class="cart-footer">
             <div class="cart-total-row">
                 <span>Subtotal:</span>
@@ -212,6 +222,36 @@
             <button id="checkoutBtn" onclick="proceedToPayment()" class="btn btn-primary btn-large" style="width: 100%;">
                 Proceed to Checkout &rarr;
             </button>
+        </div>
+    </div>
+
+    <!-- Chef AI RAG Floating Recommendation Toast -->
+    <div class="rag-toast-container" id="ragToastContainer">
+        <div class="rag-toast-card" id="ragToastCard">
+            <div class="rag-toast-header">
+                <div class="rag-toast-tag">
+                    <span>Chef AI Smart Pairing</span>
+                </div>
+                <button class="rag-toast-close" onclick="closeRagToast()">&times;</button>
+            </div>
+            <div class="rag-toast-body">
+                <div class="rag-toast-img-wrap">
+                    <img id="ragToastImg" src="" alt="Pairing Food">
+                    <span class="rag-score-badge" id="ragToastScore">100% Match</span>
+                </div>
+                <div class="rag-toast-content">
+                    <div class="rag-toast-match-type" id="ragToastMatchType">Classic Match</div>
+                    <h4 class="rag-toast-headline" id="ragToastHeadline">Perfect Match</h4>
+                    <p class="rag-toast-explanation" id="ragToastExplanation"></p>
+                    <div class="rag-toast-tags" id="ragToastTags"></div>
+                </div>
+            </div>
+            <div class="rag-toast-footer">
+                <button class="btn btn-primary btn-small rag-add-btn" id="ragToastAddBtn" onclick="acceptRagRecommendation()">
+                    + Add to Order
+                </button>
+                <button class="btn btn-outline btn-small" onclick="closeRagToast()">Skip</button>
+            </div>
         </div>
     </div>
 
@@ -370,12 +410,30 @@
                 'Desserts': 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400&auto=format&fit=crop'
             };
 
+            const popularPairings = {
+                'Tea': 'Samosa',
+                'Filter Coffee': 'Medu Vada',
+                'Cold Coffee': 'Chocolate Brownie',
+                'Samosa': 'Tea',
+                'Paneer Puff': 'Cold Coffee',
+                'Chicken Burger': 'French Fries',
+                'Veg Burger': 'French Fries',
+                'Chicken Biryani': 'Gulab Jamun',
+                'Veg Dum Biryani': 'Mango Lassi',
+                'Pasta': 'Cold Coffee',
+                'Pizza Slice': 'Fresh Lime Soda',
+                'Masala Dosa': 'Filter Coffee',
+                'Idli Vada Combo': 'Filter Coffee',
+                'Ven Pongal': 'Medu Vada'
+            };
+
             grid.innerHTML = items.map(item => {
                 const imgUrl = item.image_url || fallbackImages[item.category] || fallbackImages['Main Course'];
                 const isAvailable = item.availability !== false;
+                const pairedWith = popularPairings[item.item_name];
 
                 return `
-                    <div class="menu-item-card">
+                    <div class="menu-item-card" id="menu-card-${item.id}">
                         <div class="menu-item-image-wrapper">
                             <img src="${imgUrl}" alt="${item.item_name}" class="menu-item-image" onerror="this.src='${fallbackImages['Main Course']}'">
                             <span class="menu-item-category-tag">${item.category}</span>
@@ -385,6 +443,11 @@
                         </div>
                         <div class="menu-item-body">
                             <h3 class="menu-item-title">${item.item_name}</h3>
+                            ${pairedWith ? `
+                                <div class="menu-item-pairing-chip" onclick="highlightOrOpenItem('${pairedWith}')" title="Chef AI Pairing">
+                                    Best with ${pairedWith}
+                                </div>
+                            ` : ''}
                             <p class="menu-item-desc">${item.description || 'Prepared fresh daily in the campus kitchen with premium ingredients.'}</p>
                             <div class="menu-item-footer">
                                 <span class="menu-item-price">₹${parseFloat(item.price).toFixed(2)}</span>
@@ -553,6 +616,7 @@
 
             totalEl.textContent = total.toFixed(2);
             updateCartBadge();
+            updateCartRagSection();
         }
 
         function changeCartQty(id, delta) {
@@ -594,12 +658,160 @@
             document.getElementById('modalQuantity').textContent = currentModalQty;
         }
 
-        function confirmAddToCart() {
+        async function confirmAddToCart() {
             if (!currentModalItem) return;
+            const addedItem = { ...currentModalItem };
             addToCart(currentModalItem, currentModalQty);
             updateCartBadge();
             closeQuantityModal();
-            showMessage(`Added ${currentModalQty}x ${currentModalItem.item_name} to cart!`, 'success');
+            showMessage(`Added ${currentModalQty}x ${addedItem.item_name} to cart!`, 'success');
+
+            // Trigger Chef AI RAG Recommendation immediately
+            await triggerRagRecommendation(addedItem);
+        }
+
+        // ==========================================
+        // Chef AI RAG Recommendation Handlers
+        // ==========================================
+        let activeRagRecommendation = null;
+        let ragToastTimeout = null;
+
+        async function triggerRagRecommendation(item) {
+            try {
+                const recs = await getRagRecommendations(item);
+                if (!recs || recs.length === 0) return;
+
+                const rec = recs[0];
+                activeRagRecommendation = rec;
+
+                const toastImg = document.getElementById('ragToastImg');
+                if (toastImg) toastImg.src = rec.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200';
+
+                const toastScore = document.getElementById('ragToastScore');
+                if (toastScore) toastScore.textContent = `${rec.confidence_score}% Match`;
+
+                const matchType = document.getElementById('ragToastMatchType');
+                if (matchType) matchType.textContent = rec.match_type || 'Classic Match';
+
+                const headline = document.getElementById('ragToastHeadline');
+                if (headline) headline.textContent = rec.headline || `Pairs with ${item.item_name}!`;
+
+                const explanation = document.getElementById('ragToastExplanation');
+                if (explanation) explanation.textContent = rec.explanation || '';
+
+                const tagsContainer = document.getElementById('ragToastTags');
+                if (tagsContainer) {
+                    tagsContainer.innerHTML = (rec.synergy_tags || []).map(t => `<span class="rag-tag">${t}</span>`).join('');
+                }
+
+                const addBtn = document.getElementById('ragToastAddBtn');
+                if (addBtn) {
+                    addBtn.textContent = `+ Quick Add ${rec.item_name} (₹${parseFloat(rec.price).toFixed(2)})`;
+                }
+
+                const card = document.getElementById('ragToastCard');
+                if (card) {
+                    card.classList.add('active');
+                }
+
+                if (ragToastTimeout) clearTimeout(ragToastTimeout);
+                ragToastTimeout = setTimeout(() => {
+                    closeRagToast();
+                }, 12000);
+            } catch (err) {
+                console.warn('RAG recommendation trigger error:', err);
+            }
+        }
+
+        function closeRagToast() {
+            const card = document.getElementById('ragToastCard');
+            if (card) card.classList.remove('active');
+            if (ragToastTimeout) {
+                clearTimeout(ragToastTimeout);
+                ragToastTimeout = null;
+            }
+        }
+
+        function acceptRagRecommendation() {
+            if (!activeRagRecommendation) return;
+            const rec = activeRagRecommendation;
+
+            const fullItem = allMenuItems.find(i => i.id === rec.id) || {
+                id: rec.id,
+                item_name: rec.item_name,
+                price: rec.price,
+                category: rec.category,
+                image_url: rec.image_url,
+                availability: true
+            };
+
+            addToCart(fullItem, 1);
+            updateCartBadge();
+            renderCartDrawer();
+            closeRagToast();
+            showMessage(`Added Chef AI pairing: ${rec.item_name}!`, 'success');
+        }
+
+        async function updateCartRagSection() {
+            const cart = getCart();
+            const container = document.getElementById('cartRagContainer');
+            const cardsBox = document.getElementById('cartRagCards');
+            if (!container || !cardsBox) return;
+
+            if (cart.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            try {
+                const recs = await getRagRecommendations(cart);
+                if (!recs || recs.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.style.display = 'block';
+                cardsBox.innerHTML = recs.slice(0, 2).map(rec => `
+                    <div class="cart-rag-card">
+                        <div class="cart-rag-card-main">
+                            <div class="cart-rag-card-left">
+                                <img src="${rec.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'}" class="cart-rag-card-img" alt="${rec.item_name}">
+                                <div>
+                                    <div class="cart-rag-card-title">${rec.item_name}</div>
+                                    <div class="cart-rag-card-price">₹${parseFloat(rec.price).toFixed(2)}</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-small" onclick="quickAddFromCartDrawer(${rec.id}, '${rec.item_name.replace(/'/g, "\\'")}', ${rec.price}, '${rec.image_url || ''}')">
+                                + Add
+                            </button>
+                        </div>
+                        <div class="cart-rag-card-desc">
+                            <strong>${rec.match_type}:</strong> ${rec.explanation}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                container.style.display = 'none';
+            }
+        }
+
+        function quickAddFromCartDrawer(id, name, price, imageUrl) {
+            const fullItem = allMenuItems.find(i => i.id === id) || {
+                id: id,
+                item_name: name,
+                price: price,
+                image_url: imageUrl,
+                availability: true
+            };
+            addToCart(fullItem, 1);
+            renderCartDrawer();
+            showMessage(`Added pairing: ${name} to your order!`, 'success');
+        }
+
+        function highlightOrOpenItem(name) {
+            const target = allMenuItems.find(i => i.item_name.toLowerCase().includes(name.toLowerCase()));
+            if (!target) return;
+            openQuantityModal(target.id);
         }
     </script>
 </body>

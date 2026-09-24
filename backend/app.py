@@ -178,24 +178,74 @@ def init_db():
             if not (u_pw.startswith('scrypt:') or u_pw.startswith('pbkdf2:') or u_pw.startswith('argon2:')):
                 cur.execute("UPDATE users SET password = %s WHERE id = %s", (generate_password_hash(u_pw), u_id))
         
-        # Insert demo menu items if table is empty
-        cur.execute("SELECT COUNT(*) FROM menu_items")
-        count = cur.fetchone()[0]
-        if count == 0:
+        # Ensure unique constraint on item_name for safe idempotent upsert
+        try:
             cur.execute("""
-            INSERT INTO menu_items (item_name, price, category, description, availability) VALUES
-            ('Chicken Burger', 120.00, 'Main Course', 'Juicy chicken burger with fresh vegetables', true),
-            ('Vegetable Sandwich', 80.00, 'Snacks', 'Healthy vegetable sandwich with multigrain bread', true),
-            ('Coffee', 30.00, 'Beverages', 'Hot brewed coffee', true),
-            ('Tea', 25.00, 'Beverages', 'Hot masala tea', true),
-            ('Pasta', 150.00, 'Main Course', 'Italian pasta with white sauce', true),
-            ('French Fries', 60.00, 'Snacks', 'Crispy golden french fries', true),
-            ('Fresh Juice', 40.00, 'Beverages', 'Fresh fruit juice', true),
-            ('Pizza Slice', 100.00, 'Main Course', 'Cheesy pizza slice', true),
-            ('Samosa', 20.00, 'Snacks', 'Crispy vegetable samosa (2 pieces)', true),
-            ('Ice Cream', 50.00, 'Desserts', 'Vanilla ice cream cup', true)
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint WHERE conname = 'menu_items_item_name_key'
+                    ) THEN
+                        ALTER TABLE menu_items ADD CONSTRAINT menu_items_item_name_key UNIQUE (item_name);
+                    END IF;
+                END $$;
             """)
-        
+        except Exception:
+            pass
+
+        # 30 Curated Canteen Menu Items (Breakfast, Snacks, Beverages, Main Course, Desserts)
+        menu_seed_items = [
+            ('Tea', 20.00, 'Beverages', 'Aromatic hot Indian masala chai infused with ginger, cardamom, and clove.', True, 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500'),
+            ('Filter Coffee', 30.00, 'Beverages', 'Traditional South Indian filter coffee brewed with fresh chicory blend and frothy milk.', True, 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500'),
+            ('Cold Coffee', 55.00, 'Beverages', 'Rich blended iced coffee topped with chocolate syrup and creamy foam.', True, 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=500'),
+            ('Fresh Lime Soda', 35.00, 'Beverages', 'Zesty, fizzy sparkling soda with fresh squeezed lemon juice and mint.', True, 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500'),
+            ('Mango Lassi', 45.00, 'Beverages', 'Thick and chilled yogurt smoothie blended with sweet Alphonso mango pulp.', True, 'https://images.unsplash.com/photo-1553787499-6f9133860278?w=500'),
+            ('Badam Milk', 40.00, 'Beverages', 'Warm aromatic milk simmered with crushed almonds, saffron strands, and cardamom.', True, 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=500'),
+            ('Samosa', 25.00, 'Snacks', 'Crisp, golden-fried triangular pastries stuffed with spiced potatoes and green peas.', True, 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500'),
+            ('Paneer Puff', 35.00, 'Snacks', 'Flaky, layered puff pastry filled with mildly spiced marinated paneer cubes.', True, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500'),
+            ('French Fries', 60.00, 'Snacks', 'Crispy golden potato fingers tossed in sea salt, served with herb ketchup.', True, 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500'),
+            ('Veg Cutlet', 30.00, 'Snacks', 'Hearty pan-fried vegetable patties coated in crispy breadcrumbs with mint dip.', True, 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500'),
+            ('Onion Pakoda', 35.00, 'Snacks', 'Crunchy gram flour fritters studded with sliced onions, green chilies, and curry leaves.', True, 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500'),
+            ('Mirchi Bajji', 30.00, 'Snacks', 'Plump green banana peppers dipped in spiced chickpea batter and fried golden crisp.', True, 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500'),
+            ('Vegetable Sandwich', 70.00, 'Snacks', 'Fresh multigrain bread layered with cucumber, tomato, beetroot, and mint chutney.', True, 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500'),
+            ('Masala Dosa', 70.00, 'Breakfast', 'Crisp golden fermented rice crepe smeared with red chutney and spiced potato mash.', True, 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500'),
+            ('Idli Vada Combo', 55.00, 'Breakfast', 'Two feather-light steamed rice cakes paired with a crisp medu vada and hot sambar.', True, 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500'),
+            ('Poori Masala', 65.00, 'Breakfast', 'Three puffy deep-fried golden pooris served with flavorful potato sagu.', True, 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500'),
+            ('Ven Pongal', 50.00, 'Breakfast', 'Comforting rice and yellow moong dal cooked with pure ghee, black pepper, and cashews.', True, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500'),
+            ('Medu Vada', 40.00, 'Breakfast', 'Two crunchy savory lentil donuts infused with peppercorns, curry leaves, and ginger.', True, 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500'),
+            ('Aloo Paratha', 60.00, 'Breakfast', 'Golden griddle-toasted whole wheat flatbread filled with seasoned mashed potatoes.', True, 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=500'),
+            ('Chicken Burger', 120.00, 'Main Course', 'Grilled juicy chicken patty with cheddar cheese slice, fresh lettuce, and garlic mayo.', True, 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500'),
+            ('Veg Burger', 85.00, 'Main Course', 'Crispy spiced vegetable patty topped with melted cheese, tomato, and tangy secret sauce.', True, 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=500'),
+            ('Chicken Biryani', 160.00, 'Main Course', 'Fragrant long-grain basmati rice slow-cooked with spiced marinated chicken and onion raita.', True, 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500'),
+            ('Veg Dum Biryani', 110.00, 'Main Course', 'Aromatic basmati rice layered with garden veggies, saffron, fried onions, and salan.', True, 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=500'),
+            ('Paneer Butter Masala with Roti', 130.00, 'Main Course', 'Velvety butter-tomato gravy with soft paneer cubes, served with 3 warm phulkas.', True, 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=500'),
+            ('Dal Tadka with Jeera Rice', 95.00, 'Main Course', 'Yellow toor dal tempered with garlic and cumin, paired with aromatic ghee jeera rice.', True, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500'),
+            ('Pasta', 130.00, 'Main Course', 'Italian penne pasta tossed in creamy parmesan Alfredo sauce with herbs and olives.', True, 'https://images.unsplash.com/photo-1621996346565-e3d5d6281699?w=500'),
+            ('Pizza Slice', 90.00, 'Main Course', 'Generous slice of stone-baked pizza loaded with molten mozzarella and bell peppers.', True, 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500'),
+            ('Gulab Jamun', 40.00, 'Desserts', 'Warm melt-in-mouth milk solid spheres immersed in fragrant cardamom rose sugar syrup.', True, 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500'),
+            ('Ice Cream', 45.00, 'Desserts', 'Creamy double-vanilla ice cream cup topped with crunchy waffle cone crisps.', True, 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=500'),
+            ('Chocolate Brownie', 75.00, 'Desserts', 'Warm dense Belgian chocolate fudge brownie with dark chocolate drizzle.', True, 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500')
+        ]
+
+        for item in menu_seed_items:
+            try:
+                cur.execute("""
+                    INSERT INTO menu_items (item_name, price, category, description, availability, image_url)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (item_name) DO UPDATE SET
+                        price = EXCLUDED.price,
+                        category = EXCLUDED.category,
+                        description = EXCLUDED.description,
+                        image_url = EXCLUDED.image_url
+                """, item)
+            except Exception:
+                # Fallback if unique constraint is missing
+                cur.execute("SELECT 1 FROM menu_items WHERE LOWER(item_name) = LOWER(%s)", (item[0],))
+                if not cur.fetchone():
+                    cur.execute("""
+                        INSERT INTO menu_items (item_name, price, category, description, availability, image_url)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, item)
         conn.commit()
         cur.close()
         conn.close()
@@ -676,6 +726,74 @@ def api_get_menu():
         cur.close()
         conn.close()
         return jsonify({'success': True, 'menu': items})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/recommendations', methods=['GET', 'POST'])
+def api_recommendations():
+    """
+    RAG-powered culinary recommendation endpoint.
+    Retrieves complementary menu items for items in cart or a queried item,
+    augmented with gastronomic knowledge reasoning and synergy explanations.
+    """
+    query_items = []
+    
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        cart_items = data.get('cart', []) or data.get('cart_items', [])
+        single_item = data.get('item') or data.get('item_name')
+        if single_item:
+            if isinstance(single_item, str):
+                query_items.append({'item_name': single_item})
+            elif isinstance(single_item, dict):
+                query_items.append(single_item)
+        for c in cart_items:
+            item_name = c.get('item_name') or c.get('name')
+            if item_name:
+                query_items.append({
+                    'id': c.get('id'),
+                    'item_name': item_name,
+                    'category': c.get('category', '')
+                })
+    else:
+        # GET request: ?item=Tea or ?item_id=1
+        item_name = request.args.get('item') or request.args.get('item_name')
+        item_id = request.args.get('item_id')
+        if item_name:
+            query_items.append({'item_name': item_name})
+        elif item_id:
+            try:
+                query_items.append({'id': int(item_id)})
+            except ValueError:
+                pass
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute('SELECT id, item_name, price, category, description, availability, image_url FROM menu_items WHERE availability = true')
+        menu_items = cur.fetchall()
+        cur.close()
+        conn.close()
+        
+        # If query_items has IDs without names, fill from menu_items
+        for q in query_items:
+            if not q.get('item_name') and q.get('id'):
+                for m in menu_items:
+                    if m['id'] == q['id']:
+                        q['item_name'] = m['item_name']
+                        q['category'] = m['category']
+                        break
+
+        # Import RAG recommender pipeline
+        from rag_recommender import get_rag_recommendations
+        recommendations = get_rag_recommendations(query_items, menu_items, limit=3)
+        
+        return jsonify({
+            'success': True,
+            'query_items': query_items,
+            'recommendations': recommendations
+        })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
